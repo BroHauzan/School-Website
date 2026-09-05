@@ -15,6 +15,16 @@ export function getAdminApp(): App | null {
     app = existing[0]!;
     return app;
   }
+  // Pesan eksplisit: tanpa ini, cert() yang rusak hanya menghasilkan 500 kosong di Vercel.
+  const key = firebaseAdminEnv.privateKey!;
+  if (!key.includes("-----BEGIN PRIVATE KEY-----")) {
+    throw Object.assign(
+      new Error(
+        "FIREBASE_ADMIN_PRIVATE_KEY tidak valid: harus diawali -----BEGIN PRIVATE KEY-----. Paste ulang dari Firebase Console."
+      ),
+      { status: 500 }
+    );
+  }
   app = initializeApp({
     credential: cert({
       projectId: firebaseAdminEnv.projectId!,

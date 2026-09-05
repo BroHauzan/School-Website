@@ -24,11 +24,30 @@ export function isFirebaseConfigured(): boolean {
 // Server-only. File ini tetap diimpor dari client bundle untuk isFirebaseConfigured,
 // jadi jangan taruh secret di sini — cukup pembacaan env server yang tidak pernah
 // ter-ekspos (tanpa NEXT_PUBLIC_ tidak ikut ke bundle client).
+/**
+ * Normalisasi private key service account.
+ * - Vercel mengonversi paste single-line `\n` literal menjadi newline asli — terima keduanya.
+ * - Buang tanda kutip pembungkus ("...") bila ikut tercopy.
+ * - Buang \r (copy dari Windows/Console) dan spasi di ujung baris.
+ */
+function normalizePrivateKey(raw: string | undefined): string | undefined {
+  if (!raw) return undefined;
+  let key = raw.trim();
+  if (
+    (key.startsWith('"') && key.endsWith('"')) ||
+    (key.startsWith("'") && key.endsWith("'"))
+  ) {
+    key = key.slice(1, -1).trim();
+  }
+  key = key.replace(/\r\n?/g, "\n").replace(/[ \t]+\n/g, "\n").trim();
+  if (key.includes("\\n")) key = key.replace(/\\n/g, "\n");
+  return key || undefined;
+}
 export const firebaseAdminEnv = {
   projectId:
     process.env.FIREBASE_ADMIN_PROJECT_ID ?? process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
   clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
-  privateKey: process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+  privateKey: normalizePrivateKey(process.env.FIREBASE_ADMIN_PRIVATE_KEY),
   storageBucket:
     process.env.FIREBASE_STORAGE_BUCKET ?? process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
 };
