@@ -2,8 +2,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Reveal } from "@/components/ui/Reveal";
-import type { BeritaDoc } from "@/lib/berita-server";
+import type { BeritaDoc } from "@/lib/berita-schema";
 import { ConfirmDialog } from "./ConfirmDialog";
 
 export function BeritaTable({ items }: { items: BeritaDoc[] }) {
@@ -31,10 +30,9 @@ export function BeritaTable({ items }: { items: BeritaDoc[] }) {
     <div className="overflow-hidden rounded-lg border border-navy/10 bg-paper">
       {err ? <p role="alert" className="border-b border-red-500/20 bg-red-50 px-6 py-3 text-sm text-red-900">{err}</p> : null}
       <ul className="divide-y divide-navy/10">
-        {items.map((b, i) => (
-          <Reveal key={b.id} delay={Math.min(i, 8) * 0.04}>
-            <li className="flex flex-wrap items-center gap-4 px-6 py-5 transition-colors hover:bg-cream">
-              <div className="min-w-0 flex-1">
+        {items.map((b) => (
+          <li key={b.id} className="flex flex-wrap items-center gap-4 px-6 py-5 transition-colors hover:bg-cream">
+            <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="rounded-full bg-navy/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-navy/60">{b.tag}</span>
                   {!b.published ? <span className="rounded-full border border-amber-500/40 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-amber-800">Draft</span> : null}
@@ -48,7 +46,6 @@ export function BeritaTable({ items }: { items: BeritaDoc[] }) {
                 <ConfirmDialog title="Hapus berita?" desc={`“${b.title}” akan dihapus permanen.`} onOk={() => onDelete(b.id)} />
               </div>
             </li>
-          </Reveal>
         ))}
       </ul>
     </div>

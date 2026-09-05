@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { verifyAdminSession } from "@/lib/auth-server";
 import { adminConfigured } from "@/lib/firebase-admin";
-import { missingEnvReport } from "@/lib/env";
+import { missingEnvReport } from "@/lib/env-server";
 import { LogoutButton } from "@/components/admin/LogoutButton";
 
 // Guard server-side: verifikasi session cookie kriptografis.
@@ -20,7 +20,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
           <Link href="/admin" className="flex items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/smasa.png"
+              src="/smasa.webp"
               alt="Logo SMAN 1 Lumajang"
               className="size-8 rounded-full object-contain"
             />

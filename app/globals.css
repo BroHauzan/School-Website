@@ -91,3 +91,17 @@ body {
   filter: blur(3px) grayscale(50%);
 }
 
+/* Fokus keyboard terlihat jelas di seluruh situs (WCAG 2.4.7). */
+:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+}
+
+/* Di atas latar gelap, outline navy tidak terlihat — pakai cream. */
+.bg-navy :focus-visible,
+.bg-navy-light :focus-visible,
+.bg-navy-muted :focus-visible {
+  outline-color: var(--cream);
+}
+
+

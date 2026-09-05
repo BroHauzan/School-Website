@@ -1,5 +1,5 @@
-import { Reveal } from "../ui/Reveal";
-import { SectionHeading } from "../ui/SectionHeading";
+import { Reveal } from "@/components/ui/Reveal";
+import { SectionHeading } from "@/components/ui/SectionHeading";
 import { listBerita } from "@/lib/berita-server";
 import { cn } from "@/lib/utils";
 import Link from "next/link";

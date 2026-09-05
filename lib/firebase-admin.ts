@@ -3,7 +3,7 @@ import { cert, getApps, initializeApp, type App } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
-import { firebaseAdminEnv, isFirebaseAdminConfigured } from "./env";
+import { firebaseAdminEnv, isFirebaseAdminConfigured } from "./env-server";
 
 let app: App | null = null;
 

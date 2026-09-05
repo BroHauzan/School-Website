@@ -1,5 +1,5 @@
-import { Reveal } from "../ui/Reveal";
-import { SectionHeading } from "../ui/SectionHeading";
+import { Reveal } from "@/components/ui/Reveal";
+import { SectionHeading } from "@/components/ui/SectionHeading";
 import { listGaleri } from "@/lib/galeri-server";
 
 /**
@@ -20,7 +20,6 @@ const FALLBACK = [
 export async function Gallery() {
   const docs = await listGaleri();
   const items = docs.length > 0 ? docs.map((d) => ({ caption: d.caption, src: d.src, wide: d.wide })) : FALLBACK;
-  const isPlaceholder = docs.length === 0;
   return (
     <section id="galeri" className="bg-navy py-28 text-cream lg:py-40">
       <div className="mx-auto max-w-6xl px-6">
@@ -33,7 +32,11 @@ export async function Gallery() {
               — dan itulah yang kami simpan
             </>
           }
-          description="Bukan galeri promosi yang dipoles, tapi potongan jujur dari hari-hari di kampus. Semua foto di bawah adalah dokumentasi asli."
+          description={
+            docs.length > 0
+              ? "Bukan galeri promosi yang dipoles, tapi potongan jujur dari hari-hari di kampus. Semua foto di bawah adalah dokumentasi asli."
+              : "Dokumentasi asli sedang dikurasi. Foto di bawah masih placeholder sementara."
+          }
         />
 
         <div className="mt-16 columns-2 gap-5 sm:columns-2 lg:columns-3">
@@ -47,7 +50,7 @@ export async function Gallery() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={src}
-                  alt={isPlaceholder ? `${caption} — ganti dengan foto asli siswa SMAN 1 Lumajang` : caption}
+                  alt={caption}
                   className="h-full w-full object-cover opacity-80 transition-all duration-700 ease-out group-hover:scale-[1.05] group-hover:opacity-100"
                   loading="lazy"
                 />

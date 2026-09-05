@@ -2,8 +2,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Reveal } from "@/components/ui/Reveal";
-import type { GaleriDoc } from "@/lib/galeri-server";
+import type { GaleriDoc } from "@/lib/galeri-schema";
 import { ConfirmDialog } from "./ConfirmDialog";
 
 export function GaleriTable({ items }: { items: GaleriDoc[] }) {
@@ -31,10 +30,9 @@ export function GaleriTable({ items }: { items: GaleriDoc[] }) {
     <div className="overflow-hidden rounded-lg border border-navy/10 bg-paper">
       {err ? <p role="alert" className="border-b border-red-500/20 bg-red-50 px-6 py-3 text-sm text-red-900">{err}</p> : null}
       <ul className="divide-y divide-navy/10">
-        {items.map((g, i) => (
-          <Reveal key={g.id} delay={Math.min(i, 8) * 0.04}>
-            <li className="flex flex-wrap items-center gap-4 px-6 py-5 transition-colors hover:bg-cream">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+        {items.map((g) => (
+          <li key={g.id} className="flex flex-wrap items-center gap-4 px-6 py-5 transition-colors hover:bg-cream">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={g.src} alt={g.caption} className="size-14 shrink-0 rounded-lg border border-navy/10 object-cover" loading="lazy" />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
@@ -48,7 +46,6 @@ export function GaleriTable({ items }: { items: GaleriDoc[] }) {
                 <ConfirmDialog title="Hapus foto?" desc={`“${g.caption}” akan dihapus permanen.`} onOk={() => onDelete(g.id)} />
               </div>
             </li>
-          </Reveal>
         ))}
       </ul>
     </div>

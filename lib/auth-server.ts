@@ -1,6 +1,6 @@
 import "server-only";
 import { getAdminAuth, adminConfigured } from "./firebase-admin";
-import { adminAllowlist } from "./env";
+import { adminAllowlist } from "./env-server";
 import { SESSION_COOKIE, SESSION_MAX_AGE } from "./auth-cookie";
 
 export { SESSION_COOKIE };
@@ -13,8 +13,16 @@ export async function mintSessionCookie(idToken: string): Promise<string> {
   const decoded = await auth.verifyIdToken(idToken, true);
   const email = (decoded.email ?? "").toLowerCase();
   const allow = adminAllowlist();
-  if (allow.length > 0 && !allow.includes(email)) {
-    throw new Error("Email tidak terdaftar sebagai admin.");
+  if (allow.length === 0) {
+    throw Object.assign(
+      new Error("ADMIN_EMAILS kosong — login admin ditolak."),
+      { status: 500 }
+    );
+  }
+  if (!allow.includes(email)) {
+    throw Object.assign(new Error("Email tidak terdaftar sebagai admin."), {
+      status: 403,
+    });
   }
   return auth.createSessionCookie(idToken, { expiresIn: EXPIRES_IN });
 }
@@ -36,7 +44,8 @@ export async function verifyAdminSession(): Promise<AdminSession | null> {
     const decoded = await getAdminAuth().verifySessionCookie(token, true);
     const email = (decoded.email ?? "").toLowerCase();
     const allow = adminAllowlist();
-    if (allow.length > 0 && !allow.includes(email)) return null;
+    if (allow.length === 0) return null;
+    if (!allow.includes(email)) return null;
     return { uid: decoded.uid, email: decoded.email ?? null };
   } catch {
     return null;
@@ -54,8 +63,28 @@ export function sessionCookieOptions() {
     name: SESSION_COOKIE,
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax" as const,
+    sameSite: "strict" as const,
     path: "/",
     maxAge: EXPIRES_IN / 1000,
   };
+}
+
+/**
+ * Tolak request lintas-origin (pertahanan CSRF lapis kedua di atas
+ * SameSite=Strict). Panggil di awal setiap route yang mengubah state.
+ * Melewatkan bila header Origin/Referer absen (mis. navigasi same-origin
+ * non-fetch) — browser selalu mengirim Origin pada POST fetch lintas-origin.
+ */
+export function assertSameOrigin(request: Request): void {
+  const origin = request.headers.get("origin");
+  const referer = request.headers.get("referer");
+  const host = new URL(request.url).host;
+  const originHost = origin ? new URL(origin).host : null;
+  const refererHost = referer ? new URL(referer).host : null;
+  if (originHost && originHost !== host) {
+    throw Object.assign(new Error("Origin tidak diizinkan."), { status: 403 });
+  }
+  if (!originHost && refererHost && refererHost !== host) {
+    throw Object.assign(new Error("Referer tidak diizinkan."), { status: 403 });
+  }
 }

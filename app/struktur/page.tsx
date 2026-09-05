@@ -21,7 +21,7 @@ export default function StrukturPage() {
         title="Struktur Organisasi"
         description="Kepemimpinan dan organisasi sekolah yang jelas dan terstruktur."
       />
-      <main>
+      <main id="konten-utama">
         <Struktur />
       </main>
       <Footer />

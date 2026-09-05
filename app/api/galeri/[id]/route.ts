@@ -1,18 +1,13 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import { requireAdmin } from "@/lib/auth-server";
+import { requireAdmin, assertSameOrigin } from "@/lib/auth-server";
+import { errMsg } from "@/lib/api-error";
 import { getGaleriById, updateGaleri, deleteGaleri } from "@/lib/galeri-server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 type Ctx = { params: Promise<{ id: string }> };
-
-function errMsg(e: unknown): { message: string; status: number } {
-  const status = (e as { status?: number }).status ?? 500;
-  const message = e instanceof Error ? e.message : "Terjadi kesalahan.";
-  return { message, status };
-}
 
 export async function GET(_req: Request, { params }: Ctx) {
   try {
@@ -29,6 +24,7 @@ export async function GET(_req: Request, { params }: Ctx) {
 
 export async function PATCH(request: Request, { params }: Ctx) {
   try {
+    assertSameOrigin(request);
     await requireAdmin();
     const { id } = await params;
     const input = (await request.json().catch(() => null)) as Record<string, unknown> | null;
@@ -42,8 +38,9 @@ export async function PATCH(request: Request, { params }: Ctx) {
   }
 }
 
-export async function DELETE(_req: Request, { params }: Ctx) {
+export async function DELETE(request: Request, { params }: Ctx) {
   try {
+    assertSameOrigin(request);
     await requireAdmin();
     const { id } = await params;
     const prev = await deleteGaleri(id);

@@ -1,5 +1,5 @@
-import { Reveal } from "../ui/Reveal";
-import { SectionHeading } from "../ui/SectionHeading";
+import { Reveal } from "@/components/ui/Reveal";
+import { SectionHeading } from "@/components/ui/SectionHeading";
 import {
   KEPALA_SEKOLAH,
   STAFF_PERAN_TOTAL,
@@ -59,7 +59,7 @@ export function Struktur() {
                   <h3 className="font-display text-2xl leading-snug text-cream">
                     {tim.nama}
                   </h3>
-                  <span className="font-display text-lg text-cream/25 transition-colors duration-500 group-hover:text-cream/40">
+                  <span className="font-display text-lg text-cream/45 transition-colors duration-500 group-hover:text-cream/40">
                     {String(tim.anggota.length).padStart(2, "0")}
                   </span>
                 </div>

@@ -26,6 +26,19 @@ export async function generateMetadata({ params }: BeritaDetailProps): Promise<M
   return {
     title: `${item.title} — SMAN 1 Lumajang`,
     description: item.excerpt,
+    alternates: { canonical: `/berita/${item.slug}` },
+    openGraph: {
+      type: "article",
+      title: item.title,
+      description: item.excerpt,
+      publishedTime: item.dateISO,
+      images: [{ url: item.image }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: item.title,
+      description: item.excerpt,
+    },
   };
 }
 
@@ -47,7 +60,7 @@ export default async function BeritaDetailPage({ params }: BeritaDetailProps) {
         title={item.title}
         description={`${item.dateLabel} · ${item.tag}`}
       />
-      <main className="bg-cream">
+      <main id="konten-utama" className="bg-cream">
         <article className="mx-auto max-w-3xl px-6 py-16 lg:py-24">
           <Reveal>
             <Link

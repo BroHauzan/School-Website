@@ -21,7 +21,7 @@ export default function KalenderPendidikanPage() {
         title="Kalender Pendidikan"
         description="Jadwal kegiatan akademik dan non-akademik sepanjang tahun ajaran."
       />
-      <main>
+      <main id="konten-utama">
         <KalenderPendidikan />
       </main>
       <Footer />

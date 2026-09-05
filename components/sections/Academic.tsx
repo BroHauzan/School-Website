@@ -1,10 +1,10 @@
-import { Reveal } from "../ui/Reveal";
-import { SectionHeading } from "../ui/SectionHeading";
+import { Reveal } from "@/components/ui/Reveal";
+import { SectionHeading } from "@/components/ui/SectionHeading";
 import { PROGRAM_AKADEMIK } from "@/lib/school";
 import Link from "next/link";
 
 /**
- * Program Akademik — tiga jurusan yang diverifikasi pihak sekolah.
+ * Program Akademik — empat jalur yang diverifikasi pihak sekolah.
  * Kartu menampilkan: kode besar (display), nama jurusan, dan daftar mata
  * pelajaran inti sebagai checklist.
  */

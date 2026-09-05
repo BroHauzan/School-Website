@@ -8,11 +8,13 @@ import { Contact } from "@/components/sections/Contact";
 import { Footer } from "@/components/ui/Footer";
 import { SiteHeader } from "@/components/ui/SiteHeader";
 
+export const revalidate = 300;
+
 export default function Home() {
   return (
     <>
       <SiteHeader />
-      <main>
+      <main id="konten-utama">
         <Hero />
         <Berita />
         <SectionDivider className="my-2" />

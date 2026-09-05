@@ -13,6 +13,7 @@ export const metadata: Metadata = {
   title: "Berita — SMAN 1 Lumajang",
   description:
     "Kabar terkini SMAN 1 Lumajang: aktivitas, capaian, dan pengumuman terbaru dari lingkungan sekolah.",
+  alternates: { canonical: "/berita" },
 };
 
 export default async function BeritaPage() {
@@ -31,7 +32,7 @@ export default async function BeritaPage() {
           title="Kabar Terkini"
           description="Belum ada berita yang tersedia saat ini."
         />
-        <main className="bg-cream">
+        <main id="konten-utama" className="bg-cream">
           <section className="mx-auto max-w-6xl px-6 py-24 lg:py-32">
             <Reveal>
               <div className="mx-auto max-w-xl rounded-lg border border-navy/10 bg-paper px-8 py-14 text-center shadow-[0_24px_60px_-40px_rgba(9,18,43,0.35)]">
@@ -83,7 +84,7 @@ export default async function BeritaPage() {
         }
         description="Aktivitas, capaian, dan pengumuman terbaru dari lingkungan SMA Negeri 1 Lumajang — klik untuk membaca selengkapnya."
       />
-      <main className="bg-cream">
+      <main id="konten-utama" className="bg-cream">
         <section className="mx-auto max-w-6xl px-6 py-20 lg:py-28">
           <Reveal>
             <Link

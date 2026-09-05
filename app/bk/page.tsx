@@ -12,7 +12,7 @@ export default function BKPage() {
   return (
     <>
       <SiteHeader solidOnTop />
-      <main>
+      <main id="konten-utama">
         <BK />
       </main>
       <Footer />

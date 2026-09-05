@@ -12,7 +12,7 @@ export default function PPDBPage() {
   return (
     <>
       <SiteHeader solidOnTop />
-      <main>
+      <main id="konten-utama">
         <PPDB />
       </main>
       <Footer />

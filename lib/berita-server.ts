@@ -1,7 +1,11 @@
 import "server-only";
-import { type DocumentSnapshot, type Query } from "firebase-admin/firestore";
+import {
+  type DocumentSnapshot,
+  type Query,
+} from "firebase-admin/firestore";
 import { getAdminDb, adminConfigured } from "./firebase-admin";
 import { normalizeBeritaInput, validateBerita, slugify, type BeritaDoc } from "./berita-schema";
+import { isValidImageUrl } from "./image-url";
 
 export const BERITA_COLLECTION = "berita";
 export { type BeritaDoc };
@@ -86,8 +90,25 @@ export async function getBeritaById(id: string): Promise<BeritaDoc | null> {
 }
 
 export async function getBeritaLainDb(slug: string, count = 3): Promise<BeritaDoc[]> {
-  const all = await listBerita();
-  return all.filter((b) => b.slug !== slug).slice(0, count);
+  if (!adminConfigured()) return [];
+  try {
+    // Ambil count+1 lalu buang slug aktif di memori — jauh lebih murah
+    // daripada listBerita() (limit 100/500) untuk 3 kartu "Berita Lainnya".
+    const snap = await getAdminDb()
+      .collection(BERITA_COLLECTION)
+      .where("published", "==", true)
+      .orderBy("dateISO", "desc")
+      .limit(count + 1)
+      .get();
+    return snap.docs
+      .map(snapToDoc)
+      .filter((b) => b.slug !== slug)
+      .slice(0, count);
+  } catch {
+    // Composite index belum Ready: fallback via listBerita (sudah ada fallback memori).
+    const all = await listBerita();
+    return all.filter((b) => b.slug !== slug).slice(0, count);
+  }
 }
 
 export async function slugTaken(slug: string, exceptId?: string): Promise<boolean> {
@@ -106,6 +127,9 @@ export async function createBerita(input: Record<string, unknown>): Promise<Beri
   const check = validateBerita(input);
   if (!check.ok) throw Object.assign(new Error(check.errors.join(" ")), { status: 400 });
   const norm = normalizeBeritaInput(input);
+  if (!isValidImageUrl(norm.image)) {
+    throw Object.assign(new Error("URL gambar tidak diizinkan. Gunakan hasil upload atau path lokal."), { status: 400 });
+  }
   if (await slugTaken(norm.slug)) {
     norm.slug = `${norm.slug}-${Date.now().toString(36)}`;
   }
@@ -126,6 +150,9 @@ export async function updateBerita(id: string, input: Record<string, unknown>): 
   const check = validateBerita(merged);
   if (!check.ok) throw Object.assign(new Error(check.errors.join(" ")), { status: 400 });
   const norm = normalizeBeritaInput(merged, prev);
+  if (!isValidImageUrl(norm.image)) {
+    throw Object.assign(new Error("URL gambar tidak diizinkan. Gunakan hasil upload atau path lokal."), { status: 400 });
+  }
   if (norm.slug !== prev.slug && (await slugTaken(norm.slug, id))) {
     norm.slug = `${norm.slug}-${Date.now().toString(36)}`;
   }
@@ -142,9 +169,4 @@ export async function deleteBerita(id: string): Promise<BeritaDoc | null> {
   if (!prev) return null;
   await getAdminDb().collection(BERITA_COLLECTION).doc(id).delete();
   return prev;
-}
-
-export async function touchBerita(): Promise<void> {
-  if (!adminConfigured()) return;
-  await getAdminDb().collection(BERITA_COLLECTION).limit(1).get().catch(() => null);
 }

@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
-import { Reveal } from "../ui/Reveal";
-import { SectionHeading } from "../ui/SectionHeading";
+import { Reveal } from "@/components/ui/Reveal";
+import { SectionHeading } from "@/components/ui/SectionHeading";
 import { cn } from "@/lib/utils";
 
 /**
@@ -149,7 +149,7 @@ export function Facilities() {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={f.src}
-                      alt={`Fasilitas ${f.title} di SMAN 1 Lumajang — ganti dengan foto asli sekolah`}
+                      alt={`Fasilitas ${f.title} di SMAN 1 Lumajang`}
                       style={blurPx > 0 ? { filter: `blur(${blurPx}px)` } : undefined}
                       className="aspect-[16/10] w-full bg-navy/5 object-cover"
                       loading="lazy"
@@ -197,7 +197,7 @@ export function Facilities() {
               </svg>
             </button>
 
-            <div className="mt-6 flex items-center justify-center gap-2">
+            <div className="mt-6 flex items-center justify-center gap-1">
               {FACILITIES.map((f, i) => (
                 <button
                   key={f.title}
@@ -205,11 +205,17 @@ export function Facilities() {
                   onClick={() => goTo(i)}
                   aria-label={`Ke fasilitas ${i + 1}: ${f.title}`}
                   aria-current={i === active}
-                  className={cn(
-                    "h-2 rounded-full transition-all duration-300",
-                    i === active ? "w-6 bg-navy" : "w-2 bg-navy/20 hover:bg-navy/40"
-                  )}
-                />
+                  className="group flex size-9 items-center justify-center"
+                >
+                  <span
+                    className={cn(
+                      "h-2 rounded-full transition-all duration-300",
+                      i === active
+                        ? "w-6 bg-navy"
+                        : "w-2 bg-navy/25 group-hover:bg-navy/50"
+                    )}
+                  />
+                </button>
               ))}
             </div>
             <p className="mt-3 text-center text-xs uppercase tracking-[0.24em] text-muted">

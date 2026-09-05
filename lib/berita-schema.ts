@@ -20,7 +20,7 @@ const ID_MONTHS = [
 ];
 
 export function slugify(s: string): string {
-  return s.toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "")
+  return s.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "").slice(0, 80) || "berita";
 }
 
@@ -30,8 +30,13 @@ export function formatTanggalID(iso: string): string {
   return `${d.getDate()} ${ID_MONTHS[d.getMonth()]} ${d.getFullYear()}`;
 }
 
+/** Tanggal ISO hari ini menurut jam dinding WIB (bukan UTC). */
 export function todayISO(): string {
-  return new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const wib = new Date(now.getTime() + (7 * 60 + now.getTimezoneOffset()) * 60_000);
+  const m = String(wib.getMonth() + 1).padStart(2, "0");
+  const d = String(wib.getDate()).padStart(2, "0");
+  return `${wib.getFullYear()}-${m}-${d}`;
 }
 
 export function validateBerita(input: Record<string, unknown>): { ok: boolean; errors: string[] } {
@@ -48,7 +53,9 @@ export function validateBerita(input: Record<string, unknown>): { ok: boolean; e
   const iso = str("dateISO") || str("date");
   if (iso && isNaN(new Date(iso).getTime())) errors.push("Tanggal tidak valid.");
   const img = str("image");
-  if (img && !/^(\/|https?:\/\/)/.test(img)) errors.push("URL gambar tidak valid.");
+  if (img && !/^\/(?!\/)/.test(img) && !/^https:\/\/(res\.cloudinary\.com|firebasestorage\.googleapis\.com|storage\.googleapis\.com)\//.test(img)) {
+    errors.push("URL gambar harus path lokal atau https dari res.cloudinary.com / Firebase Storage.");
+  }
   return { ok: errors.length === 0, errors };
 }
 

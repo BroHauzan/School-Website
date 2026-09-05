@@ -1,4 +1,4 @@
-import { cloudinaryEnv } from "./env";
+import { cloudinaryEnv } from "./env-server";
 
 export async function uploadToCloudinary(
   file: File,

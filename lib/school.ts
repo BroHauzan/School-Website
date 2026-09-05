@@ -8,6 +8,13 @@
 
 export const UNVERIFIED_LABEL = "Menunggu verifikasi sekolah";
 
+/**
+ * Domain resmi situs. SATU sumber untuk metadata, canonical, sitemap, robots,
+ * dan JSON-LD. Ubah di sini saja saat pindah host / pakai domain Vercel.
+ */
+export const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://sman1lumajang.sch.id";
+
 export interface Accreditation {
   /** Peringkat, mis. "A" atau "Unggul". */
   grade: string | null;

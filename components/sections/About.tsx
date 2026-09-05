@@ -1,6 +1,6 @@
-import { Reveal } from "../ui/Reveal";
-import { SectionHeading } from "../ui/SectionHeading";
-import { OwlMotif } from "../ui/OwlMotif";
+import { Reveal } from "@/components/ui/Reveal";
+import { SectionHeading } from "@/components/ui/SectionHeading";
+import { OwlMotif } from "@/components/ui/OwlMotif";
 import { SCHOOL } from "@/lib/school";
 
 export function About() {

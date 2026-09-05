@@ -2,6 +2,7 @@ import "server-only";
 import { type DocumentSnapshot, type Query } from "firebase-admin/firestore";
 import { getAdminDb, adminConfigured } from "./firebase-admin";
 import { normalizeGaleriInput, validateGaleri, type GaleriDoc } from "./galeri-schema";
+import { isValidImageUrl } from "./image-url";
 
 export const GALERI_COLLECTION = "galeri";
 export { type GaleriDoc };
@@ -59,6 +60,9 @@ export async function createGaleri(input: Record<string, unknown>): Promise<Gale
   const check = validateGaleri(input);
   if (!check.ok) throw Object.assign(new Error(check.errors.join(" ")), { status: 400 });
   const norm = normalizeGaleriInput(input);
+  if (!isValidImageUrl(norm.src)) {
+    throw Object.assign(new Error("URL gambar tidak diizinkan. Gunakan hasil upload atau path lokal."), { status: 400 });
+  }
   const now = new Date().toISOString();
   const ref = await getAdminDb().collection(GALERI_COLLECTION).add({
     ...norm,
@@ -75,6 +79,9 @@ export async function updateGaleri(id: string, input: Record<string, unknown>): 
   const check = validateGaleri(merged);
   if (!check.ok) throw Object.assign(new Error(check.errors.join(" ")), { status: 400 });
   const norm = normalizeGaleriInput(merged, prev);
+  if (!isValidImageUrl(norm.src)) {
+    throw Object.assign(new Error("URL gambar tidak diizinkan. Gunakan hasil upload atau path lokal."), { status: 400 });
+  }
   const now = new Date().toISOString();
   await getAdminDb().collection(GALERI_COLLECTION).doc(id).set(
     { ...norm, createdAt: prev.createdAt, updatedAt: now },

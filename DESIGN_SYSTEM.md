@@ -110,9 +110,9 @@ Sudah built-in di `Reveal.tsx` + `globals.css`. Jangan override.
 ## 7. Page Anatomy (wajib untuk page baru)
 
 ```tsx
-import { SiteHeader } from "@/components/SiteHeader";
-import { PageHero } from "@/components/PageHero";
-import { Footer } from "@/components/Footer";
+import { SiteHeader } from "@/components/ui/SiteHeader";
+import { PageHero } from "@/components/ui/PageHero";
+import { Footer } from "@/components/ui/Footer";
 
 export default function NamaPage() {
   return (
@@ -170,8 +170,10 @@ Minimal structure component:
 ## 10. File References
 
 - **Tokens:** `app/globals.css` (line 3–14)
-- **Components:** `components/SectionHeading.tsx`, `components/Reveal.tsx`, `components/PageHero.tsx`
-- **Examples:** `components/VisiMisi.tsx`, `components/KalenderPendidikan.tsx`, `components/Achievements.tsx`
+- **Components:** `components/ui/SiteHeader.tsx`, `components/ui/PageHero.tsx`,
+  `components/ui/Footer.tsx`, `components/ui/SectionHeading.tsx`, `components/ui/Reveal.tsx`
+- **Examples:** `components/sections/VisiMisi.tsx`, `components/sections/KalenderPendidikan.tsx`,
+  `components/sections/Achievements.tsx`
 - **Fonts:** `app/layout.tsx` (Geist + Playfair Display)
 
 ---

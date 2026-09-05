@@ -48,10 +48,21 @@ export function SiteHeader({ solidOnTop = false }: { solidOnTop?: boolean }) {
   const [openMobileAccordion, setOpenMobileAccordion] = useState<string | null>(null);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
+    // rAF throttle: state update maksimal sekali per frame, bukan per event scroll.
+    let raf = 0;
+    const onScroll = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        setScrolled(window.scrollY > 24);
+      });
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
   }, []);
 
   const solid = scrolled || solidOnTop;
@@ -100,6 +111,20 @@ export function SiteHeader({ solidOnTop = false }: { solidOnTop?: boolean }) {
                 >
                   <button
                     type="button"
+                    aria-expanded={activeDropdown === item.label}
+                    aria-haspopup="true"
+                    onClick={() =>
+                      setActiveDropdown((p) => (p === item.label ? null : item.label))
+                    }
+                    onFocus={() => setActiveDropdown(item.label)}
+                    onBlur={(e) => {
+                      if (!e.currentTarget.parentElement?.contains(e.relatedTarget as Node)) {
+                        setActiveDropdown(null);
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Escape") setActiveDropdown(null);
+                    }}
                     className={cn(
                       "flex items-center gap-1 whitespace-nowrap text-[13px] tracking-wide transition-colors hover:opacity-70 xl:text-sm",
                       overDark ? "text-cream/85" : "text-ink/80"
@@ -127,11 +152,19 @@ export function SiteHeader({ solidOnTop = false }: { solidOnTop?: boolean }) {
                         transition={{ duration: 0.2, ease: "easeOut" }}
                         className="absolute left-0 top-full pt-2"
                       >
-                        <div className="min-w-[180px] rounded-lg border border-navy/10 bg-cream/95 py-2 shadow-xl backdrop-blur-md">
+                        <div
+                          className="min-w-[180px] rounded-lg border border-navy/10 bg-cream/95 py-2 shadow-xl backdrop-blur-md"
+                          onBlur={(e) => {
+                            if (!e.currentTarget.parentElement?.contains(e.relatedTarget as Node)) {
+                              setActiveDropdown(null);
+                            }
+                          }}
+                        >
                           {item.children.map((child) => (
                             <Link
                               key={child.href}
                               href={child.href}
+                              onClick={() => setActiveDropdown(null)}
                               className="block px-4 py-2 text-[13px] text-ink/80 transition-colors hover:bg-navy/5 hover:text-ink xl:text-sm"
                             >
                               {child.label}

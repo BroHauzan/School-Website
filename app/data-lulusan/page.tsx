@@ -11,7 +11,7 @@ export default function DataLulusanPage() {
   return (
     <>
       <SiteHeader solidOnTop />
-      <main className="min-h-screen bg-cream text-navy">
+      <main id="konten-utama" className="min-h-screen bg-cream text-navy">
       <section className="relative mx-auto max-w-4xl px-6 pb-24 pt-32">
         <h1 className="font-display text-4xl tracking-tight sm:text-5xl">
           Data Lulusan

@@ -41,7 +41,7 @@ export function Footer() {
             <div className="flex items-center justify-start gap-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/smasa.png"
+                src="/smasa.webp"
                 alt="Logo SMAN 1 Lumajang"
                 className="size-10 shrink-0 rounded-full bg-cream object-cover"
                 loading="lazy"
@@ -57,7 +57,7 @@ export function Footer() {
           </div>
 
           <nav aria-label="Profil" className="flex flex-col items-start">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cream/40">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cream/70">
               Profil
             </p>
             <ul className="mt-4 flex flex-col items-start gap-3">
@@ -75,7 +75,7 @@ export function Footer() {
           </nav>
 
           <nav aria-label="Akademik" className="flex flex-col items-start">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cream/40">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cream/70">
               Akademik
             </p>
             <ul className="mt-4 flex flex-col items-start gap-3">
@@ -93,7 +93,7 @@ export function Footer() {
           </nav>
 
           <nav aria-label="Kesiswaan" className="flex flex-col items-start">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cream/40">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cream/70">
               Kesiswaan
             </p>
             <ul className="mt-4 flex flex-col items-start gap-3">
@@ -111,7 +111,7 @@ export function Footer() {
           </nav>
 
           <div className="flex flex-col items-start">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cream/40">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cream/70">
               Informasi
             </p>
             <ul className="mt-4 space-y-3 text-left text-sm text-cream/60">
@@ -137,7 +137,7 @@ export function Footer() {
           </div>
 
           <div className="flex flex-col items-start">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cream/40">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cream/70">
               Akun Resmi
             </p>
             <ul className="mt-4 flex flex-col items-start gap-3 text-sm text-cream/60">
@@ -150,7 +150,7 @@ export function Footer() {
                     className="transition-colors hover:text-cream"
                   >
                     {label}
-                    <span className="text-cream/40"> &middot; {handle}</span>
+                    <span className="text-cream/70"> &middot; {handle}</span>
                   </a>
                 </li>
               ))}
@@ -159,7 +159,7 @@ export function Footer() {
         </div>
 
         <div className="mt-16 flex flex-col items-start justify-between gap-4 border-t border-cream/10 pt-8 text-left md:flex-row md:items-center">
-          <p className="text-xs text-cream/40">
+          <p className="text-xs text-cream/70">
             &copy; {new Date().getFullYear()} SMAN 1 Lumajang. All rights reserved.
           </p>
         </div>

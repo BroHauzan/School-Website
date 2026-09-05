@@ -1,8 +1,8 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { SectionHeading } from "../ui/SectionHeading";
-import { Reveal } from "../ui/Reveal";
+import { SectionHeading } from "@/components/ui/SectionHeading";
+import { Reveal } from "@/components/ui/Reveal";
 
 /**
  * // PLACEHOLDER: ganti seluruh isi dengan data prestasi nyata dari
@@ -71,14 +71,17 @@ export function Achievements() {
           ))}
         </div>
 
-        <div className="mt-16 overflow-x-auto">
+        <div className="mt-16 overflow-x-auto" tabIndex={0} role="region" aria-label="Tabel daftar prestasi">
           <table className="w-full min-w-[640px] border-collapse text-left">
+            <caption className="sr-only">
+              Daftar prestasi sekolah beserta tahun, tingkat, dan peraih.
+            </caption>
             <thead>
-              <tr className="border-b border-cream/20 text-xs uppercase tracking-[0.2em] text-cream/50">
-                <th className="px-1 py-5 font-medium">Tahun</th>
-                <th className="px-1 py-5 font-medium">Tingkat</th>
-                <th className="px-1 py-5 font-medium">Prestasi</th>
-                <th className="px-1 py-5 font-medium">Peraih</th>
+              <tr className="border-b border-cream/20 text-xs uppercase tracking-[0.2em] text-cream/70">
+                <th scope="col" className="px-1 py-5 font-medium">Tahun</th>
+                <th scope="col" className="px-1 py-5 font-medium">Tingkat</th>
+                <th scope="col" className="px-1 py-5 font-medium">Prestasi</th>
+                <th scope="col" className="px-1 py-5 font-medium">Peraih</th>
               </tr>
             </thead>
             <tbody>

@@ -25,7 +25,7 @@ export default function PrestasiPage() {
         }
         description="Bukti kuat tanpa gembar-gembor — setiap prestasi tercatat dengan detail."
       />
-      <main>
+      <main id="konten-utama">
         <Achievements />
       </main>
       <Footer />

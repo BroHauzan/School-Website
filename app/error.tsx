@@ -16,7 +16,7 @@ export default function Error({
   }, [error]);
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-cream px-6 text-center">
+    <main id="konten-utama" className="flex min-h-screen flex-col items-center justify-center bg-cream px-6 text-center">
       <p className="text-xs font-semibold uppercase tracking-[0.24em] text-navy-muted">
         Terjadi Kesalahan
       </p>

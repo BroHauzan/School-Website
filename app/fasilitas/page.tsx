@@ -25,7 +25,7 @@ export default function FasilitasPage() {
         }
         description="Lab, aula, dan ruang kreatif — tur singkat lima fasilitas yang paling sering dipakai siswa SMAN 1 Lumajang."
       />
-      <main>
+      <main id="konten-utama">
         <Facilities />
       </main>
       <Footer />

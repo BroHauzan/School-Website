@@ -12,7 +12,7 @@ export default function AlumniPage() {
   return (
     <>
       <SiteHeader solidOnTop />
-      <main>
+      <main id="konten-utama">
         <Alumni />
       </main>
       <Footer />

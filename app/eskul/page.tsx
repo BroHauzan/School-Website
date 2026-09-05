@@ -12,7 +12,7 @@ export default function EskulPage() {
   return (
     <>
       <SiteHeader solidOnTop />
-      <main>
+      <main id="konten-utama">
         <Extracurricular />
       </main>
       <Footer />

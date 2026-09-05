@@ -16,7 +16,9 @@ export function validateGaleri(input: Record<string, unknown>): { ok: boolean; e
   if (str("caption").length > 160) errors.push("Caption maksimal 160 karakter.");
   const src = str("src");
   if (!src) errors.push("Gambar wajib diisi.");
-  else if (!/^(\/|https?:\/\/)/.test(src)) errors.push("URL gambar tidak valid.");
+  else if (!/^\/(?!\/)/.test(src) && !/^https:\/\/(res\.cloudinary\.com|firebasestorage\.googleapis\.com|storage\.googleapis\.com)\//.test(src)) {
+    errors.push("URL gambar harus path lokal atau https dari res.cloudinary.com / Firebase Storage.");
+  }
   const order = Number(input.order);
   if (input.order !== undefined && (!Number.isFinite(order) || order < 0 || order > 9999)) {
     errors.push("Urutan harus angka 0–9999.");

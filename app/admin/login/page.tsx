@@ -12,7 +12,7 @@ export default function AdminLoginPage() {
           <Link href="/" className="flex items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/smasa.png"
+              src="/smasa.webp"
               alt="Logo SMAN 1 Lumajang"
               className="size-10 rounded-full object-contain"
             />
@@ -23,7 +23,7 @@ export default function AdminLoginPage() {
             <h1 className="mt-4 font-display text-5xl leading-tight">Kelola <i className="text-cream/60">berita</i> sekolah.</h1>
             <p className="mt-4 max-w-md text-base leading-relaxed text-cream/70">Tulis, sunting, dan tayangkan kabar terkini SMASA langsung ke situs.</p>
           </div>
-          <p className="text-xs uppercase tracking-[0.24em] text-cream/40">Sejak 1960</p>
+          <p className="text-xs uppercase tracking-[0.24em] text-cream/60">Sejak 1960</p>
         </div>
       </div>
       <div className="flex items-center bg-cream px-6 py-16">

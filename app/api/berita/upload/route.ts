@@ -1,40 +1,33 @@
 import { NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/auth-server";
+import { requireAdmin, assertSameOrigin } from "@/lib/auth-server";
+import { errMsg } from "@/lib/api-error";
+import { validateImageFile, UPLOAD_MAX_BYTES } from "@/lib/upload-validate";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const MAX_BYTES = 5 * 1024 * 1024;
-const ALLOWED_TYPES = new Set([
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/gif",
-]);
-
 export async function POST(request: Request) {
   try {
+    assertSameOrigin(request);
     await requireAdmin();
     const form = await request.formData().catch(() => null);
     const file = form?.get("file");
     if (!(file instanceof File)) {
       return NextResponse.json({ error: "Field 'file' wajib diisi." }, { status: 400 });
     }
-    if (!ALLOWED_TYPES.has(file.type)) {
-      return NextResponse.json(
-        { error: "Format gambar harus JPG, PNG, WebP, atau GIF." },
-        { status: 400 }
-      );
-    }
-    if (file.size > MAX_BYTES) {
+    if (file.size > UPLOAD_MAX_BYTES) {
       return NextResponse.json({ error: "Ukuran gambar maksimal 5MB." }, { status: 400 });
+    }
+    // Validasi MIME + magic bytes (tolak GIF & file spoof).
+    const invalid = await validateImageFile(file);
+    if (invalid) {
+      return NextResponse.json({ error: invalid }, { status: 400 });
     }
     const { secure_url, public_id } = await uploadToCloudinary(file);
     return NextResponse.json({ url: secure_url, public_id }, { status: 201 });
   } catch (e) {
-    const status = (e as { status?: number }).status ?? 500;
-    const message = e instanceof Error ? e.message : "Upload gagal.";
+    const { message, status } = errMsg(e, "Upload gagal.");
     return NextResponse.json({ error: message }, { status });
   }
 }

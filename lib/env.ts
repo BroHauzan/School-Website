@@ -1,6 +1,9 @@
 // Env helpers. Semua akses process.env harus STATIS (identifier literal)
 // supaya Next.js bisa inline NEXT_PUBLIC_* ke client bundle.
 // Akses dinamis (process.env[key]) TIDAK akan di-inline di browser — hindari.
+//
+// FILE INI KHUSUS NILAI PUBLIC. Secret/server-only ada di lib/env-server.ts
+// (dilindungi import "server-only" supaya tak bisa ikut ke bundle client).
 
 export const firebaseClientEnv = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -21,45 +24,9 @@ export function isFirebaseConfigured(): boolean {
   );
 }
 
-// Server-only. File ini tetap diimpor dari client bundle untuk isFirebaseConfigured,
-// jadi jangan taruh secret di sini — cukup pembacaan env server yang tidak pernah
-// ter-ekspos (tanpa NEXT_PUBLIC_ tidak ikut ke bundle client).
-/**
- * Normalisasi private key service account.
- * - Vercel mengonversi paste single-line `\n` literal menjadi newline asli — terima keduanya.
- * - Buang tanda kutip pembungkus ("...") bila ikut tercopy.
- * - Buang \r (copy dari Windows/Console) dan spasi di ujung baris.
- */
-function normalizePrivateKey(raw: string | undefined): string | undefined {
-  if (!raw) return undefined;
-  let key = raw.trim();
-  if (
-    (key.startsWith('"') && key.endsWith('"')) ||
-    (key.startsWith("'") && key.endsWith("'"))
-  ) {
-    key = key.slice(1, -1).trim();
-  }
-  key = key.replace(/\r\n?/g, "\n").replace(/[ \t]+\n/g, "\n").trim();
-  if (key.includes("\\n")) key = key.replace(/\\n/g, "\n");
-  return key || undefined;
-}
-export const firebaseAdminEnv = {
-  projectId:
-    process.env.FIREBASE_ADMIN_PROJECT_ID ?? process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
-  privateKey: normalizePrivateKey(process.env.FIREBASE_ADMIN_PRIVATE_KEY),
-  storageBucket:
-    process.env.FIREBASE_STORAGE_BUCKET ?? process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-};
-
-export function isFirebaseAdminConfigured(): boolean {
-  return Boolean(
-    firebaseAdminEnv.projectId &&
-      firebaseAdminEnv.clientEmail &&
-      firebaseAdminEnv.privateKey
-  );
-}
-
+// Nilai berikut dibaca di server TAPI dipakai guard publik client
+// (mis. isCloudinaryConfigured untuk menonaktifkan UI upload di panel).
+// Tidak ada secret di sini — hanya nama cloud & preset unsigned.
 export const cloudinaryEnv = {
   cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
   uploadPreset: process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET,
@@ -69,22 +36,3 @@ export function isCloudinaryConfigured(): boolean {
   return Boolean(cloudinaryEnv.cloudName && cloudinaryEnv.uploadPreset);
 }
 
-export function adminAllowlist(): string[] {
-  return (process.env.ADMIN_EMAILS ?? "")
-    .split(",")
-    .map((s) => s.trim().toLowerCase())
-    .filter(Boolean);
-}
-
-export function missingEnvReport(): string[] {
-  const out: string[] = [];
-  if (!firebaseClientEnv.apiKey) out.push("NEXT_PUBLIC_FIREBASE_API_KEY");
-  if (!firebaseClientEnv.authDomain) out.push("NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN");
-  if (!firebaseClientEnv.projectId) out.push("NEXT_PUBLIC_FIREBASE_PROJECT_ID");
-  if (!firebaseClientEnv.storageBucket)
-    out.push("NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET");
-  if (!firebaseClientEnv.appId) out.push("NEXT_PUBLIC_FIREBASE_APP_ID");
-  if (!firebaseAdminEnv.clientEmail) out.push("FIREBASE_ADMIN_CLIENT_EMAIL");
-  if (!firebaseAdminEnv.privateKey) out.push("FIREBASE_ADMIN_PRIVATE_KEY");
-  return out;
-}

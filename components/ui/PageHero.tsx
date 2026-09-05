@@ -23,7 +23,7 @@ export function PageHero({ breadcrumbs, title, description }: PageHeroProps) {
 
       <div className="relative z-10 mx-auto max-w-6xl px-6 pb-20 pt-32 lg:pb-28 lg:pt-40">
         <nav aria-label="Breadcrumb" className="mb-6">
-          <ol className="flex flex-wrap items-center gap-2 text-xs text-cream/50">
+          <ol className="flex flex-wrap items-center gap-2 text-xs text-cream/70">
             {breadcrumbs.map((crumb, i) => (
               <li key={crumb.href} className="flex items-center gap-2">
                 {i > 0 && <span aria-hidden="true">/</span>}

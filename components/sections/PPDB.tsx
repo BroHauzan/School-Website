@@ -1,5 +1,5 @@
-import { Reveal } from "../ui/Reveal";
-import { SectionHeading } from "../ui/SectionHeading";
+import { Reveal } from "@/components/ui/Reveal";
+import { SectionHeading } from "@/components/ui/SectionHeading";
 import { PpdbCountdown } from "./PpdbCountdown";
 import { PPDB_SCHOOL_YEAR, SCHOOL, waHref } from "@/lib/school";
 

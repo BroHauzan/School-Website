@@ -9,7 +9,10 @@ import { isFirebaseConfigured } from "@/lib/env";
 export function LoginForm() {
   const router = useRouter();
   const search = useSearchParams();
-  const next = search.get("next") || "/admin";
+  const rawNext = search.get("next") || "/admin";
+  // Anti open-redirect: hanya path internal absolut ("/...") yang diizinkan.
+  const next =
+    rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/admin";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);

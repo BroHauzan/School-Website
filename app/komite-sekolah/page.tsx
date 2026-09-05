@@ -12,7 +12,7 @@ export default function KomiteSekolahPage() {
   return (
     <>
       <SiteHeader solidOnTop />
-      <main>
+      <main id="konten-utama">
         <KomiteSekolah />
       </main>
       <Footer />

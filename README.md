@@ -67,13 +67,38 @@ DESIGN_SYSTEM.md     # design token & aturan hierarki visual — wajib dibaca se
 - Gambar berita diunggah ke Cloudinary (`NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` +
   `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET`).
 - Gambar galeri & fasilitas masih memakai `/placeholder-sekolah.svg`.
-- `SITE_URL` di `app/layout.tsx` masih nilai default — sesuaikan saat deploy untuk metadata & Open Graph.
+- `SITE_URL` dibaca dari `NEXT_PUBLIC_SITE_URL` (default `https://sman1lumajang.sch.id`)
+  di `lib/school.ts` — dipakai metadata, canonical, sitemap, dan robots.
 - Tidak ada secret di repo. Salin `.env.example` jadi `.env.local` untuk development.
-- Variabel wajib di Vercel (scope **Production, Preview, dan Development**):
-  `NEXT_PUBLIC_FIREBASE_*`, `FIREBASE_ADMIN_*`, `NEXT_PUBLIC_CLOUDINARY_*`, dan
-  `ADMIN_EMAILS` (daftar email admin, pisahkan dengan koma — tipe **Config**, bukan Secret).
-  Tanpa `ADMIN_EMAILS`, guard allowlist admin di `lib/auth-server.ts` tidak menegakkan apa pun.
-  Simpan `FIREBASE_ADMIN_PRIVATE_KEY` dalam satu baris dengan `\n` literal, tanpa tanda kutip.
+
+## Keamanan admin (sekarang fail-closed)
+
+- `ADMIN_EMAILS` **wajib diisi**. Kosong = login admin ditolak (500) dan semua sesi
+  dianggap tidak valid. Sebelumnya kosong berarti "siapa pun user Auth boleh masuk".
+- Cookie sesi: `__Host-smasa_admin_session` di produksi (`Secure`, `HttpOnly`,
+  `SameSite=Strict`), umur **24 jam**. Logout memanggil `revokeRefreshTokens(uid)`.
+- Semua endpoint tulis (`POST/PATCH/DELETE` di `/api/*`) memverifikasi header `Origin`
+  (`assertSameOrigin` di `lib/auth-server.ts`) sebagai lapis kedua anti-CSRF.
+- Upload gambar: hanya JPG/PNG/WebP, maks 5MB, **magic bytes** diverifikasi di server
+  (GIF ditolak — rawan GIF-bomb).
+- URL gambar yang disimpan ke Firestore dibatasi: path lokal (`/...`) atau
+  `res.cloudinary.com` / `firebasestorage.googleapis.com` / `storage.googleapis.com`.
+- Pesan error 5xx tidak lagi membocorkan `e.message` ke klien (`lib/api-error.ts`).
+- Redirect setelah login hanya menerima path internal (`/...`), bukan URL eksternal.
+
+**Masih perlu dilakukan di sisi layanan (bukan kode):**
+1. Firebase Console → Authentication → **matikan sign-up email/password** atau batasi
+   via App Check; rotasi `NEXT_PUBLIC_FIREBASE_API_KEY` bila repo pernah publik.
+2. Cloudinary Console → Upload → kunci preset: folder `berita`/`galeri` saja,
+   max 5MB, format jpg/png/webp.
+
+## Variabel wajib di Vercel
+
+Scope **Production, Preview, dan Development** untuk semuanya:
+`NEXT_PUBLIC_FIREBASE_*`, `FIREBASE_ADMIN_*`, `NEXT_PUBLIC_CLOUDINARY_*`,
+`ADMIN_EMAILS` (tipe **Config**, bukan Secret — kosong berarti admin terkunci total),
+dan `NEXT_PUBLIC_SITE_URL`.
+Simpan `FIREBASE_ADMIN_PRIVATE_KEY` dalam satu baris dengan `\n` literal, tanpa tanda kutip.
 
 ## Deploy
 

@@ -25,7 +25,7 @@ export default function VisiMisiPage() {
         }
         description="Landasan pendidikan yang membentuk karakter unggul dan berwawasan global."
       />
-      <main>
+      <main id="konten-utama">
         <VisiMisi />
       </main>
       <Footer />

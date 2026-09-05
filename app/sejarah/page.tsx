@@ -27,7 +27,7 @@ export default function SejarahPage() {
         }
         description="Perjalanan SMAN 1 Lumajang dalam membentuk generasi unggul sejak awal berdiri."
       />
-      <main>
+      <main id="konten-utama">
         <About />
         <Sejarah />
       </main>

@@ -1,5 +1,5 @@
-import { Reveal } from "../ui/Reveal";
-import { SectionHeading } from "../ui/SectionHeading";
+import { Reveal } from "@/components/ui/Reveal";
+import { SectionHeading } from "@/components/ui/SectionHeading";
 import { EKSTRAKURIKULER, EKSKUL_TOTAL } from "@/lib/school";
 
 /**

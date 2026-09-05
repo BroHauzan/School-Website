@@ -164,7 +164,7 @@ export function Hero() {
         className="absolute bottom-6 left-6 hidden flex-col items-center gap-2 sm:flex"
       >
         <span className="h-10 w-px bg-gradient-to-b from-transparent via-cream/40 to-transparent" />
-        <span className="text-[10px] uppercase tracking-[0.3em] text-cream/40 [writing-mode:vertical-rl]">
+        <span className="text-[10px] uppercase tracking-[0.3em] text-cream/60 [writing-mode:vertical-rl]">
           Gulir untuk menjelajah
         </span>
       </div>

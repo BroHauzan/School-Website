@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getPpdbStatus, type PpdbStatus, formatIsoDay } from "@/lib/school";
+import { getPpdbStatus, type PpdbStatus, formatIsoDay, PPDB_SCHOOL_YEAR } from "@/lib/school";
 
 export function PpdbCountdown() {
   const [status, setStatus] = useState<PpdbStatus | null>(null);
@@ -9,14 +9,21 @@ export function PpdbCountdown() {
   useEffect(() => {
     const tick = () => setStatus(getPpdbStatus());
     tick();
-    const id = window.setInterval(tick, 60_000);
-    return () => window.clearInterval(id);
+    // Ambil status awal; interval hanya berguna bila countdown masih relevan.
+    let id: number | null = null;
+    const s = getPpdbStatus();
+    if (s && s.state !== "closed" && s.state !== "unverified") {
+      id = window.setInterval(tick, 60_000);
+    }
+    return () => {
+      if (id !== null) window.clearInterval(id);
+    };
   }, []);
 
   if (!status || status.state === "unverified") {
     return (
       <div className="rounded-lg border border-navy/10 bg-cream p-6 text-center text-sm text-muted">
-        Jadwal PPDB 2026/2027 menunggu pengumuman resmi Dinas Pendidikan.
+        Jadwal PPDB {PPDB_SCHOOL_YEAR} menunggu pengumuman resmi Dinas Pendidikan.
       </div>
     );
   }

@@ -50,7 +50,7 @@ export function ImageUploadField({
         <input
           ref={fileRef}
           type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif"
+          accept="image/jpeg,image/png,image/webp"
           className="hidden"
           onChange={(e) => {
             const f = e.target.files?.[0];
@@ -58,7 +58,7 @@ export function ImageUploadField({
             e.target.value = "";
           }}
         />
-        <span className="text-xs text-muted">JPG / PNG / WebP / GIF · maks 5MB</span>
+        <span className="text-xs text-muted">JPG / PNG / WebP · maks 5MB</span>
       </div>
       <input
         value={value}
