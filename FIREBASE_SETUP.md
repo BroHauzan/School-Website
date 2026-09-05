@@ -26,7 +26,28 @@ Tulis hanya lewat Admin SDK server (session cookie).
 ## 5. Env Vercel
 Salin semua key dari `.env.example` ke Vercel Project > Settings > Environment Variables:
 - `NEXT_PUBLIC_*` (client), `FIREBASE_ADMIN_*` + `ADMIN_EMAILS` (server only).
+- Centang scope **Production, Preview, dan Development** untuk semua variabel —
+  `NEXT_PUBLIC_*` di-inline saat build, jadi Preview yang tidak punya variabel ini
+  akan build dengan konfigurasi Firebase kosong.
+- `ADMIN_EMAILS` isi tipe **Config** (bukan Secret) supaya nilainya bisa dibaca guard
+  allowlist di `lib/auth-server.ts`. Kosong = allowlist tidak menegakkan apa pun.
 
 ## 6. Skema Firestore
 Koleksi `berita`, dokumen:
 slug, title, excerpt, tag, image, body[], featured, published, dateISO, dateLabel, createdAt, updatedAt.
+
+## 7. Composite index Firestore (wajib)
+
+`listBerita()` memakai `where("published", "==", true)` + `orderBy("dateISO", "desc")`.
+Dua field sekaligus = butuh **composite index**. Tanpa index, query gagal
+`FAILED_PRECONDITION: The query requires an index` dan halaman berita jadi kosong.
+
+Buat salah satu cara ini:
+1. CLI: `npx firebase-tools deploy --only firestore:indexes --project sman-1-lumajang`
+   (definisi di `firestore.indexes.json`).
+2. Console > Firestore > Indexes > *Add index*: collection `berita`,
+   `published` = Ascending, `dateISO` = Descending.
+
+Sampai status index `Ready`, `listBerita()` jatuh ke jalur cadangan: ambil tanpa
+`orderBy` (maks 500 dokumen) lalu urutkan di memori. Itu tambalan pengaman, bukan
+pengganti index — tetap buat index-nya.

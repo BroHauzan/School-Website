@@ -1,35 +1,15 @@
 import "server-only";
-import { FieldValue, type DocumentSnapshot, type Query } from "firebase-admin/firestore";
+import { type DocumentSnapshot, type Query } from "firebase-admin/firestore";
 import { getAdminDb, adminConfigured } from "./firebase-admin";
-import { BERITA } from "./berita";
 import { normalizeBeritaInput, validateBerita, slugify, type BeritaDoc } from "./berita-schema";
 
 export const BERITA_COLLECTION = "berita";
 export { type BeritaDoc };
 
-type SeedItem = (typeof BERITA)[number];
-
-function seedToDoc(s: SeedItem, i: number): BeritaDoc {
-  return {
-    id: `seed-${s.slug}`,
-    slug: s.slug,
-    title: s.title,
-    excerpt: s.excerpt,
-    tag: s.tag,
-    image: s.image,
-    body: s.body,
-    featured: s.featured ?? i === 0,
-    published: true,
-    dateISO: `2025-01-${String(26 - Math.min(i, 25)).padStart(2, "0")}`,
-    dateLabel: s.date,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-}
-
-export function seedBerita(): BeritaDoc[] {
-  return BERITA.map(seedToDoc);
-}
+/**
+ * Sumber data berita SATU-SATUNYA koleksi Firestore `berita`.
+ * Tidak ada artikel bawaan/dummy — array kosong berarti benar-benar belum ada berita.
+ */
 
 function snapToDoc(snap: DocumentSnapshot): BeritaDoc {
   const d = snap.data() as Record<string, unknown>;
@@ -42,26 +22,47 @@ function snapToDoc(snap: DocumentSnapshot): BeritaDoc {
   };
 }
 
+/** `published == true` + `orderBy dateISO` butuh composite index (firestore.indexes.json). */
+function needsIndexError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return /FAILED_PRECONDITION|requires an index/i.test(msg);
+}
+
 export async function listBerita(opts?: { includeDraft?: boolean }): Promise<BeritaDoc[]> {
-  if (!adminConfigured()) return seedBerita();
+  if (!adminConfigured()) return [];
+  const publishedOnly = !opts?.includeDraft;
+  const db = getAdminDb();
   try {
-    const db = getAdminDb();
     let q: Query = db
       .collection(BERITA_COLLECTION)
       .orderBy("dateISO", "desc");
-    if (!opts?.includeDraft) q = q.where("published", "==", true);
+    if (publishedOnly) q = q.where("published", "==", true);
     const snap = await q.limit(100).get();
-    if (snap.empty) return seedBerita();
     return snap.docs.map(snapToDoc);
-  } catch {
-    return seedBerita();
+  } catch (err) {
+    if (!needsIndexError(err)) {
+      console.error("[berita] listBerita gagal:", err);
+      return [];
+    }
+    // Composite index belum dibuat di project ini: ambil tanpa orderBy lalu
+    // urutkan di memori. Deploy firestore.indexes.json supaya jalur ini tidak terpakai.
+    try {
+      let q: Query = db.collection(BERITA_COLLECTION);
+      if (publishedOnly) q = q.where("published", "==", true);
+      const snap = await q.limit(500).get();
+      return snap
+        .docs.map(snapToDoc)
+        .sort((a, b) => b.dateISO.localeCompare(a.dateISO))
+        .slice(0, 100);
+    } catch (err2) {
+      console.error("[berita] listBerita gagal:", err2);
+      return [];
+    }
   }
 }
 
 export async function getBeritaBySlug(slug: string): Promise<BeritaDoc | null> {
-  if (!adminConfigured()) {
-    return seedBerita().find((b) => b.slug === slug) ?? null;
-  }
+  if (!adminConfigured()) return null;
   try {
     const db = getAdminDb();
     const snap = await db
@@ -69,17 +70,15 @@ export async function getBeritaBySlug(slug: string): Promise<BeritaDoc | null> {
       .where("slug", "==", slug)
       .limit(1)
       .get();
-    if (snap.empty) return seedBerita().find((b) => b.slug === slug) ?? null;
+    if (snap.empty) return null;
     return snapToDoc(snap.docs[0]!);
-  } catch {
-    return seedBerita().find((b) => b.slug === slug) ?? null;
+  } catch (err) {
+    console.error("[berita] getBeritaBySlug gagal:", err);
+    return null;
   }
 }
 
 export async function getBeritaById(id: string): Promise<BeritaDoc | null> {
-  if (id.startsWith("seed-")) {
-    return seedBerita().find((b) => b.id === id) ?? null;
-  }
   if (!adminConfigured()) return null;
   const doc = await getAdminDb().collection(BERITA_COLLECTION).doc(id).get();
   if (!doc.exists) return null;
@@ -120,9 +119,6 @@ export async function createBerita(input: Record<string, unknown>): Promise<Beri
 }
 
 export async function updateBerita(id: string, input: Record<string, unknown>): Promise<BeritaDoc> {
-  if (id.startsWith("seed-")) {
-    throw Object.assign(new Error("Berita bawaan tidak bisa diubah. Buat berita baru dulu."), { status: 400 });
-  }
   const prev = await getBeritaById(id);
   if (!prev) throw Object.assign(new Error("Berita tidak ditemukan."), { status: 404 });
   const merged: Record<string, unknown> = { ...prev, ...input };
@@ -144,9 +140,6 @@ export async function updateBerita(id: string, input: Record<string, unknown>): 
 export async function deleteBerita(id: string): Promise<BeritaDoc | null> {
   const prev = await getBeritaById(id);
   if (!prev) return null;
-  if (id.startsWith("seed-")) {
-    throw Object.assign(new Error("Berita bawaan tidak bisa dihapus."), { status: 400 });
-  }
   await getAdminDb().collection(BERITA_COLLECTION).doc(id).delete();
   return prev;
 }
@@ -155,5 +148,3 @@ export async function touchBerita(): Promise<void> {
   if (!adminConfigured()) return;
   await getAdminDb().collection(BERITA_COLLECTION).limit(1).get().catch(() => null);
 }
-
-export { FieldValue };

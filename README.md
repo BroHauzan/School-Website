@@ -25,7 +25,7 @@ npm run lint     # eslint
 | Rute | Keterangan |
 |---|---|
 | `/` | Landing page (hero, about, berita, fasilitas, PPDB, kontak, dll.) |
-| `/berita` | Arsip berita — featured card + grid |
+| `/berita` | Arsip berita — featured card + grid (empty state bila belum ada artikel) |
 | `/berita/[slug]` | Detail berita + berita terkait |
 | `/visi-misi` | Visi & misi sekolah |
 | `/sejarah` | Sejarah sekolah |
@@ -42,6 +42,9 @@ npm run lint     # eslint
 | `/bk` | Bimbingan konseling |
 | `/jurnal-absensi` | Jurnal absensi |
 | `/alumni` | Alumni |
+| `/admin` | Panel admin CMS berita (login Firebase) |
+| `/admin/berita/baru` | Tulis berita baru |
+| `/admin/berita/[id]/ubah` | Ubah berita |
 
 ## Struktur
 
@@ -49,17 +52,28 @@ npm run lint     # eslint
 app/                 # halaman (App Router)
 app/berita/[slug]/   # detail berita, generateStaticParams
 components/          # section & UI (SiteHeader, Footer, Berita, PageHero, SectionDivider, ...)
-lib/                 # data & util (berita.ts, school.ts, utils.ts)
+lib/                 # data & util (berita-server.ts, berita-schema.ts, school.ts, utils.ts)
+app/admin/           # panel admin CMS berita
+app/api/berita/      # route handler CRUD berita
 public/              # aset (smasa.webp, hero-school.webp, svg)
 DESIGN_SYSTEM.md     # design token & aturan hierarki visual — wajib dibaca sebelum bikin komponen baru
 ```
 
 ## Status & catatan
 
-- **Data berita masih placeholder** — 4 artikel dummy di `lib/berita.ts`, semua gambar masih memakai `/hero-school.webp`. Ganti dengan data asli / CMS / API sebelum produksi.
+- **Berita hanya bersumber dari Firestore** — koleksi `berita`, dikelola lewat `/admin`.
+  Tidak ada lagi artikel dummy/seed di repo (`lib/berita.ts` sudah dihapus). Bila Firestore
+  kosong, `/berita` menampilkan empty state dan section Berita di homepage tidak dirender.
+- Gambar berita diunggah ke Cloudinary (`NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` +
+  `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET`).
 - Gambar galeri & fasilitas masih memakai `/placeholder-sekolah.svg`.
 - `SITE_URL` di `app/layout.tsx` masih nilai default — sesuaikan saat deploy untuk metadata & Open Graph.
-- Tidak ada `.env` atau secret di repo ini.
+- Tidak ada secret di repo. Salin `.env.example` jadi `.env.local` untuk development.
+- Variabel wajib di Vercel (scope **Production, Preview, dan Development**):
+  `NEXT_PUBLIC_FIREBASE_*`, `FIREBASE_ADMIN_*`, `NEXT_PUBLIC_CLOUDINARY_*`, dan
+  `ADMIN_EMAILS` (daftar email admin, pisahkan dengan koma — tipe **Config**, bukan Secret).
+  Tanpa `ADMIN_EMAILS`, guard allowlist admin di `lib/auth-server.ts` tidak menegakkan apa pun.
+  Simpan `FIREBASE_ADMIN_PRIVATE_KEY` dalam satu baris dengan `\n` literal, tanpa tanda kutip.
 
 ## Deploy
 

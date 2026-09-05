@@ -32,8 +32,35 @@ export default async function BeritaPage() {
           description="Belum ada berita yang tersedia saat ini."
         />
         <main className="bg-cream">
-          <section className="mx-auto max-w-6xl px-6 py-20 lg:py-28">
-            <p className="text-center text-muted">Belum ada berita.</p>
+          <section className="mx-auto max-w-6xl px-6 py-24 lg:py-32">
+            <Reveal>
+              <div className="mx-auto max-w-xl rounded-lg border border-navy/10 bg-paper px-8 py-14 text-center shadow-[0_24px_60px_-40px_rgba(9,18,43,0.35)]">
+                <span className="inline-flex size-14 items-center justify-center rounded-full bg-navy/5 font-display text-2xl italic text-navy-muted">
+                  &hellip;
+                </span>
+                <h2 className="mt-6 font-display text-2xl tracking-[-0.01em] text-ink lg:text-3xl">
+                  Belum ada <i className="text-navy-muted">berita</i>
+                </h2>
+                <p className="mt-4 text-base leading-relaxed text-muted">
+                  Kabar terbaru dari lingkungan SMA Negeri 1 Lumajang akan tampil di sini
+                  setelah dipublikasikan oleh humas sekolah.
+                </p>
+                <div className="mt-9 flex flex-wrap justify-center gap-4">
+                  <Link
+                    href="/"
+                    className="rounded-full bg-navy px-7 py-3 text-sm font-semibold text-cream transition-colors hover:bg-navy-light"
+                  >
+                    Kembali ke Beranda
+                  </Link>
+                  <Link
+                    href="/ppdb"
+                    className="rounded-full border border-navy/25 px-7 py-3 text-sm font-semibold text-navy transition-colors hover:border-navy/60"
+                  >
+                    Info PPDB
+                  </Link>
+                </div>
+              </div>
+            </Reveal>
           </section>
         </main>
         <Footer />
@@ -92,44 +119,46 @@ export default async function BeritaPage() {
               </div>
             </Link>
           </Reveal>
-          <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {lainnya.map((item, i) => (
-              <Reveal key={item.slug} delay={0.08 * (i + 1)}>
-                <Link
-                  href={`/berita/${item.slug}`}
-                  className="group flex h-full flex-col overflow-hidden rounded-lg border border-navy/10 bg-paper transition-shadow hover:shadow-[0_24px_60px_-30px_rgba(9,18,43,0.35)]"
-                >
-                  <div className="relative aspect-[16/9] overflow-hidden bg-navy-light">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      className="h-full w-full object-cover opacity-90 transition-transform duration-700 group-hover:scale-[1.04]"
-                      loading="lazy"
-                    />
-                    <span className="absolute left-4 top-4 rounded-full bg-navy/85 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-cream">
-                      {item.tag}
-                    </span>
-                  </div>
-                  <div className="flex flex-1 flex-col p-6">
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-muted">{item.dateLabel}</p>
-                    <h3 className="mt-3 font-display text-xl leading-snug text-ink transition-colors group-hover:text-navy-muted">
-                      {item.title}
-                    </h3>
-                    <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted">
-                      {item.excerpt}
-                    </p>
-                    <span className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-navy">
-                      Baca selengkapnya
-                      <span className="transition-transform duration-300 group-hover:translate-x-1">
-                        &rarr;
-                      </span>
-                    </span>
-                  </div>
-                </Link>
-              </Reveal>
-            ))}
-          </div>
+          {lainnya.length > 0 ? (
+              <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {lainnya.map((item, i) => (
+                  <Reveal key={item.slug} delay={0.08 * (i + 1)}>
+                    <Link
+                      href={`/berita/${item.slug}`}
+                      className="group flex h-full flex-col overflow-hidden rounded-lg border border-navy/10 bg-paper transition-shadow hover:shadow-[0_24px_60px_-30px_rgba(9,18,43,0.35)]"
+                    >
+                      <div className="relative aspect-[16/9] overflow-hidden bg-navy-light">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={item.image}
+                          alt={item.title}
+                          className="h-full w-full object-cover opacity-90 transition-transform duration-700 group-hover:scale-[1.04]"
+                          loading="lazy"
+                        />
+                        <span className="absolute left-4 top-4 rounded-full bg-navy/85 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-cream">
+                          {item.tag}
+                        </span>
+                      </div>
+                      <div className="flex flex-1 flex-col p-6">
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-muted">{item.dateLabel}</p>
+                        <h3 className="mt-3 font-display text-xl leading-snug text-ink transition-colors group-hover:text-navy-muted">
+                          {item.title}
+                        </h3>
+                        <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted">
+                          {item.excerpt}
+                        </p>
+                        <span className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-navy">
+                          Baca selengkapnya
+                          <span className="transition-transform duration-300 group-hover:translate-x-1">
+                            &rarr;
+                          </span>
+                        </span>
+                      </div>
+                    </Link>
+                  </Reveal>
+                ))}
+              </div>
+          ) : null}
         </section>
 
         <SectionDivider />

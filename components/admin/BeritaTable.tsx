@@ -38,19 +38,14 @@ export function BeritaTable({ items }: { items: BeritaDoc[] }) {
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="rounded-full bg-navy/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-navy/60">{b.tag}</span>
                   {!b.published ? <span className="rounded-full border border-amber-500/40 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-amber-800">Draft</span> : null}
-                  {b.id.startsWith("seed-") ? <span className="rounded-full border border-navy/20 px-3 py-1 text-[11px] uppercase tracking-wider text-muted">Bawaan</span> : null}
                 </div>
                 <p className="mt-2 truncate font-display text-lg text-ink">{b.title}</p>
                 <p className="mt-0.5 text-xs uppercase tracking-[0.2em] text-muted">{b.dateLabel}</p>
               </div>
               <div className="flex items-center gap-2">
                 <Link href={`/berita/${b.slug}`} target="_blank" className="rounded-full border border-navy/20 px-4 py-1.5 text-xs text-navy transition-colors hover:border-navy/50">Lihat</Link>
-                {b.id.startsWith("seed-") ? null : (
-                  <>
-                    <Link href={`/admin/berita/${b.id}/ubah`} className="rounded-full bg-navy px-4 py-1.5 text-xs font-medium text-cream transition-colors hover:bg-navy-light">Ubah</Link>
-                    <ConfirmDialog title="Hapus berita?" desc={`“${b.title}” akan dihapus permanen.`} onOk={() => onDelete(b.id)} />
-                  </>
-                )}
+                <Link href={`/admin/berita/${b.id}/ubah`} className="rounded-full bg-navy px-4 py-1.5 text-xs font-medium text-cream transition-colors hover:bg-navy-light">Ubah</Link>
+                <ConfirmDialog title="Hapus berita?" desc={`“${b.title}” akan dihapus permanen.`} onOk={() => onDelete(b.id)} />
               </div>
             </li>
           </Reveal>

@@ -1,0 +1,13 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "berita",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "published", "order": "ASCENDING" },
+        { "fieldPath": "dateISO", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

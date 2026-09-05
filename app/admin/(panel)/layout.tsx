@@ -62,8 +62,8 @@ export default async function PanelLayout({ children }: { children: React.ReactN
             <p className="font-semibold">Firebase Admin belum dikonfigurasi.</p>
             <p className="mt-1">
               Isi environment berikut di <code className="font-mono">.env.local</code> / Vercel:{" "}
-              <code className="font-mono">{missingEnvReport().join(", ") || "—"}</code>. Situs
-              publik tetap jalan dengan data bawaan.
+              <code className="font-mono">{missingEnvReport().join(", ") || "—"}</code>. Tanpa itu,
+              halaman berita tampil kosong dan artikel baru tidak bisa disimpan.
             </p>
           </div>
         </div>
