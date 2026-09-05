@@ -1,24 +1,27 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { SiteHeader } from "@/components/SiteHeader";
-import { Footer } from "@/components/Footer";
-import { PageHero } from "@/components/PageHero";
-import { Reveal } from "@/components/Reveal";
-import { SectionDivider } from "@/components/SectionDivider";
-import { BERITA, getBerita, getBeritaLain } from "@/lib/berita";
+import { SiteHeader } from "@/components/ui/SiteHeader";
+import { Footer } from "@/components/ui/Footer";
+import { PageHero } from "@/components/ui/PageHero";
+import { Reveal } from "@/components/ui/Reveal";
+import { SectionDivider } from "@/components/ui/SectionDivider";
+import { getBeritaBySlug, getBeritaLainDb, listBerita } from "@/lib/berita-server";
 import Link from "next/link";
+
+export const revalidate = 300;
 
 type BeritaDetailProps = {
   params: Promise<{ slug: string }>;
 };
 
-export function generateStaticParams() {
-  return BERITA.map((item) => ({ slug: item.slug }));
+export async function generateStaticParams() {
+  const docs = await listBerita();
+  return docs.map((item) => ({ slug: item.slug }));
 }
 
 export async function generateMetadata({ params }: BeritaDetailProps): Promise<Metadata> {
   const { slug } = await params;
-  const item = getBerita(slug);
+  const item = await getBeritaBySlug(slug);
   if (!item) return { title: "Berita — SMAN 1 Lumajang" };
   return {
     title: `${item.title} — SMAN 1 Lumajang`,
@@ -28,9 +31,9 @@ export async function generateMetadata({ params }: BeritaDetailProps): Promise<M
 
 export default async function BeritaDetailPage({ params }: BeritaDetailProps) {
   const { slug } = await params;
-  const item = getBerita(slug);
+  const item = await getBeritaBySlug(slug);
   if (!item) notFound();
-  const lainnya = getBeritaLain(slug);
+  const lainnya = await getBeritaLainDb(slug);
 
   return (
     <>
@@ -42,7 +45,7 @@ export default async function BeritaDetailPage({ params }: BeritaDetailProps) {
           { href: `/berita/${item.slug}`, label: item.tag },
         ]}
         title={item.title}
-        description={`${item.date} · ${item.tag}`}
+        description={`${item.dateLabel} · ${item.tag}`}
       />
       <main className="bg-cream">
         <article className="mx-auto max-w-3xl px-6 py-16 lg:py-24">
@@ -84,7 +87,7 @@ export default async function BeritaDetailPage({ params }: BeritaDetailProps) {
               <span className="rounded-full bg-navy px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-cream">
                 {item.tag}
               </span>
-              <span className="text-xs uppercase tracking-[0.22em] text-muted">{item.date}</span>
+              <span className="text-xs uppercase tracking-[0.22em] text-muted">{item.dateLabel}</span>
             </div>
           </Reveal>
         </article>
@@ -133,9 +136,9 @@ export default async function BeritaDetailPage({ params }: BeritaDetailProps) {
                     </span>
                   </div>
                   <div className="flex flex-1 flex-col p-6">
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-muted">
-                      {related.date}
-                    </p>
+                      <p className="text-[11px] uppercase tracking-[0.22em] text-muted">
+                        {related.dateLabel}
+                      </p>
                     <h3 className="mt-3 font-display text-xl leading-snug text-ink transition-colors group-hover:text-navy-muted">
                       {related.title}
                     </h3>

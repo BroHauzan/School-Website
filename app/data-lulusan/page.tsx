@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { SiteHeader } from "@/components/SiteHeader";
-import { Footer } from "@/components/Footer";
+import { SiteHeader } from "@/components/ui/SiteHeader";
+import { Footer } from "@/components/ui/Footer";
 
 export const metadata: Metadata = {
   title: "Data Lulusan — SMAN 1 Lumajang",

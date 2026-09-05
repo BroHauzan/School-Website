@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { MAPS, SCHOOL, SOCIALS } from "@/lib/school";
-import { ScrollToHash } from "@/components/ScrollToHash";
-import { BackToTop } from "@/components/BackToTop";
+import { ScrollToHash } from "@/components/ui/ScrollToHash";
+import { BackToTop } from "@/components/ui/BackToTop";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

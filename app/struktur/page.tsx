@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { SiteHeader } from "@/components/SiteHeader";
-import { Footer } from "@/components/Footer";
-import { PageHero } from "@/components/PageHero";
-import { Struktur } from "@/components/Struktur";
+import { SiteHeader } from "@/components/ui/SiteHeader";
+import { Footer } from "@/components/ui/Footer";
+import { PageHero } from "@/components/ui/PageHero";
+import { Struktur } from "@/components/sections/Struktur";
 
 export const metadata: Metadata = {
   title: "Struktur — SMAN 1 Lumajang",

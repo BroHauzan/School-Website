@@ -1,12 +1,12 @@
-import { Hero } from "@/components/Hero";
-import { Berita } from "@/components/Berita";
-import { SectionDivider } from "@/components/SectionDivider";
-import { Academic } from "@/components/Academic";
-import { Gallery } from "@/components/Gallery";
-import { Testimonials } from "@/components/Testimonials";
-import { Contact } from "@/components/Contact";
-import { Footer } from "@/components/Footer";
-import { SiteHeader } from "@/components/SiteHeader";
+import { Hero } from "@/components/sections/Hero";
+import { Berita } from "@/components/sections/Berita";
+import { SectionDivider } from "@/components/ui/SectionDivider";
+import { Academic } from "@/components/sections/Academic";
+import { Gallery } from "@/components/sections/Gallery";
+import { Testimonials } from "@/components/sections/Testimonials";
+import { Contact } from "@/components/sections/Contact";
+import { Footer } from "@/components/ui/Footer";
+import { SiteHeader } from "@/components/ui/SiteHeader";
 
 export default function Home() {
   return (

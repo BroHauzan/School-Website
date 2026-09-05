@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { SiteHeader } from "@/components/SiteHeader";
-import { Footer } from "@/components/Footer";
-import { Extracurricular } from "@/components/Extracurricular";
+import { SiteHeader } from "@/components/ui/SiteHeader";
+import { Footer } from "@/components/ui/Footer";
+import { Extracurricular } from "@/components/sections/Extracurricular";
 
 export const metadata: Metadata = {
   title: "Ekstrakurikuler — SMAN 1 Lumajang",

@@ -1,0 +1,79 @@
+import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
+import { requireAdmin } from "@/lib/auth-server";
+import { getBeritaById, updateBerita, deleteBerita } from "@/lib/berita-server";
+import { getAdminBucket } from "@/lib/firebase-admin";
+
+export const runtime = "nodejs";
+
+type Ctx = { params: Promise<{ id: string }> };
+
+function errMsg(e: unknown): { message: string; status: number } {
+  const status = (e as { status?: number }).status ?? 500;
+  const message = e instanceof Error ? e.message : "Terjadi kesalahan.";
+  return { message, status };
+}
+
+function storagePathFromUrl(url: string): string | null {
+  try {
+    const u = new URL(url);
+    const m = u.pathname.match(/\/o\/(.+)$/);
+    if (m?.[1]) return decodeURIComponent(m[1]);
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+export async function GET(_req: Request, { params }: Ctx) {
+  try {
+    await requireAdmin();
+    const { id } = await params;
+    const item = await getBeritaById(id);
+    if (!item) return NextResponse.json({ error: "Berita tidak ditemukan." }, { status: 404 });
+    return NextResponse.json({ data: item });
+  } catch (e) {
+    const { message, status } = errMsg(e);
+    return NextResponse.json({ error: message }, { status });
+  }
+}
+
+export async function PATCH(request: Request, { params }: Ctx) {
+  try {
+    await requireAdmin();
+    const { id } = await params;
+    const input = (await request.json().catch(() => null)) as Record<string, unknown> | null;
+    if (!input) return NextResponse.json({ error: "Body JSON tidak valid." }, { status: 400 });
+    const updated = await updateBerita(id, input);
+    revalidatePath("/berita");
+    revalidatePath(`/berita/${updated.slug}`);
+    revalidatePath("/", "layout");
+    return NextResponse.json({ data: updated });
+  } catch (e) {
+    const { message, status } = errMsg(e);
+    return NextResponse.json({ error: message }, { status });
+  }
+}
+
+export async function DELETE(_req: Request, { params }: Ctx) {
+  try {
+    await requireAdmin();
+    const { id } = await params;
+    const prev = await deleteBerita(id);
+    if (!prev) return NextResponse.json({ error: "Berita tidak ditemukan." }, { status: 404 });
+    const path = storagePathFromUrl(prev.image);
+    if (path) {
+      try {
+        await getAdminBucket().file(path).delete({ ignoreNotFound: true });
+      } catch {
+        // file lama boleh gagal dihapus — jangan gagalkan request
+      }
+    }
+    revalidatePath("/berita");
+    revalidatePath("/", "layout");
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    const { message, status } = errMsg(e);
+    return NextResponse.json({ error: message }, { status });
+  }
+}

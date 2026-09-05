@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { SiteHeader } from "@/components/SiteHeader";
-import { Footer } from "@/components/Footer";
-import { PageHero } from "@/components/PageHero";
-import { KalenderPendidikan } from "@/components/KalenderPendidikan";
+import { SiteHeader } from "@/components/ui/SiteHeader";
+import { Footer } from "@/components/ui/Footer";
+import { PageHero } from "@/components/ui/PageHero";
+import { KalenderPendidikan } from "@/components/sections/KalenderPendidikan";
 
 export const metadata: Metadata = {
   title: "Kalender Pendidikan — SMAN 1 Lumajang",

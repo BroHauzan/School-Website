@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { SiteHeader } from "@/components/SiteHeader";
-import { Footer } from "@/components/Footer";
-import { Facilities } from "@/components/Facilities";
+import { SiteHeader } from "@/components/ui/SiteHeader";
+import { Footer } from "@/components/ui/Footer";
+import { Facilities } from "@/components/sections/Facilities";
 
 export const metadata: Metadata = {
   title: "Fasilitas — SMAN 1 Lumajang",

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { SiteHeader } from "@/components/SiteHeader";
-import { Footer } from "@/components/Footer";
-import { PageHero } from "@/components/PageHero";
-import { VisiMisi } from "@/components/VisiMisi";
+import { SiteHeader } from "@/components/ui/SiteHeader";
+import { Footer } from "@/components/ui/Footer";
+import { PageHero } from "@/components/ui/PageHero";
+import { VisiMisi } from "@/components/sections/VisiMisi";
 
 export const metadata: Metadata = {
   title: "Visi & Misi — SMAN 1 Lumajang",

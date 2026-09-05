@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
-import { SiteHeader } from "@/components/SiteHeader";
-import { Footer } from "@/components/Footer";
-import { PageHero } from "@/components/PageHero";
-import { Reveal } from "@/components/Reveal";
-import { SectionDivider } from "@/components/SectionDivider";
-import { BERITA } from "@/lib/berita";
+import { SiteHeader } from "@/components/ui/SiteHeader";
+import { Footer } from "@/components/ui/Footer";
+import { PageHero } from "@/components/ui/PageHero";
+import { Reveal } from "@/components/ui/Reveal";
+import { SectionDivider } from "@/components/ui/SectionDivider";
+import { listBerita } from "@/lib/berita-server";
 import Link from "next/link";
+
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "Berita — SMAN 1 Lumajang",
@@ -13,8 +15,9 @@ export const metadata: Metadata = {
     "Kabar terkini SMAN 1 Lumajang: aktivitas, capaian, dan pengumuman terbaru dari lingkungan sekolah.",
 };
 
-export default function BeritaPage() {
-  const [sorotan, ...lainnya] = BERITA;
+export default async function BeritaPage() {
+  const docs = await listBerita();
+  const [sorotan, ...lainnya] = docs;
 
   if (!sorotan) {
     return (
@@ -74,7 +77,7 @@ export default function BeritaPage() {
               </div>
               <div className="flex flex-col justify-center p-7 lg:p-12">
                 <p className="text-xs font-semibold uppercase tracking-[0.28em] text-navy-muted">
-                  Sorotan · {sorotan.date}
+                  Sorotan · {sorotan.dateLabel}
                 </p>
                 <h2 className="mt-4 font-display text-3xl leading-tight tracking-[-0.01em] text-ink lg:text-4xl">
                   {sorotan.title}
@@ -109,7 +112,7 @@ export default function BeritaPage() {
                     </span>
                   </div>
                   <div className="flex flex-1 flex-col p-6">
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-muted">{item.date}</p>
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-muted">{item.dateLabel}</p>
                     <h3 className="mt-3 font-display text-xl leading-snug text-ink transition-colors group-hover:text-navy-muted">
                       {item.title}
                     </h3>

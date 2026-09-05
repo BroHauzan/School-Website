@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { SiteHeader } from "@/components/SiteHeader";
-import { Footer } from "@/components/Footer";
-import { PageHero } from "@/components/PageHero";
-import { Achievements } from "@/components/Achievements";
+import { SiteHeader } from "@/components/ui/SiteHeader";
+import { Footer } from "@/components/ui/Footer";
+import { PageHero } from "@/components/ui/PageHero";
+import { Achievements } from "@/components/sections/Achievements";
 
 export const metadata: Metadata = {
   title: "Prestasi — SMAN 1 Lumajang",
