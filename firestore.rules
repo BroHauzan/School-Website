@@ -5,6 +5,10 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false;
     }
+    match /galeri/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
     match /{document=**} {
       allow read, write: if false;
     }

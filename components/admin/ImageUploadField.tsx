@@ -6,9 +6,13 @@ import { inputCls } from "./Field";
 export function ImageUploadField({
   value,
   onChange,
+  uploadUrl = "/api/berita/upload",
+  previewAlt = "Pratinjau gambar header",
 }: {
   value: string;
   onChange: (url: string) => void;
+  uploadUrl?: string;
+  previewAlt?: string;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -20,7 +24,7 @@ export function ImageUploadField({
     try {
       const form = new FormData();
       form.append("file", file);
-      const res = await fetch("/api/berita/upload", { method: "POST", body: form });
+      const res = await fetch(uploadUrl, { method: "POST", body: form });
       const json = (await res.json().catch(() => null)) as { url?: string; error?: string } | null;
       if (!res.ok) throw new Error(json?.error ?? "Upload gagal.");
       if (!json?.url) throw new Error("Upload gagal: URL kosong.");
@@ -65,7 +69,7 @@ export function ImageUploadField({
       {value ? (
         <div className="mt-3 overflow-hidden rounded-lg border border-navy/10 bg-navy-light">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={value} alt="Pratinjau gambar header" className="aspect-[16/9] w-full object-cover" />
+          <img src={value} alt={previewAlt} className="aspect-[16/9] w-full object-cover" />
         </div>
       ) : null}
       {error ? <p role="alert" className="mt-2 text-xs text-red-700">{error}</p> : null}

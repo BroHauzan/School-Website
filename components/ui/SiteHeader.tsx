@@ -37,6 +37,7 @@ const NAV: NavItem[] = [
   },
   { href: "/berita", label: "Berita" },
   { href: "/prestasi", label: "Prestasi" },
+  { href: "/fasilitas", label: "Fasilitas" },
   { href: "/#kontak", label: "Kontak" },
 ];
 

@@ -28,7 +28,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
               <span className="block text-xs font-semibold uppercase tracking-[0.28em] text-cream/60">
                 SMASA · Admin
               </span>
-              <span className="block font-display text-lg leading-tight">Panel Berita</span>
+              <span className="block font-display text-lg leading-tight">Panel Admin</span>
             </span>
           </Link>
           <nav className="flex items-center gap-2 text-sm">
@@ -37,6 +37,12 @@ export default async function PanelLayout({ children }: { children: React.ReactN
               className="rounded-full px-4 py-2 text-cream/80 transition-colors hover:bg-cream/10 hover:text-cream"
             >
               Berita
+            </Link>
+            <Link
+              href="/admin/galeri"
+              className="rounded-full px-4 py-2 text-cream/80 transition-colors hover:bg-cream/10 hover:text-cream"
+            >
+              Galeri
             </Link>
             <Link
               href="/admin/berita/baru"

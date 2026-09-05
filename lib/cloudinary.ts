@@ -1,6 +1,9 @@
 import { cloudinaryEnv } from "./env";
 
-export async function uploadToCloudinary(file: File): Promise<{ secure_url: string; public_id: string }> {
+export async function uploadToCloudinary(
+  file: File,
+  folder = "berita",
+): Promise<{ secure_url: string; public_id: string }> {
   const cloudName = cloudinaryEnv.cloudName;
   const uploadPreset = cloudinaryEnv.uploadPreset;
   if (!cloudName || !uploadPreset) {
@@ -9,7 +12,7 @@ export async function uploadToCloudinary(file: File): Promise<{ secure_url: stri
   const form = new FormData();
   form.append("file", file);
   form.append("upload_preset", uploadPreset);
-  form.append("folder", "berita");
+  form.append("folder", folder);
   const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
     method: "POST",
     body: form,
