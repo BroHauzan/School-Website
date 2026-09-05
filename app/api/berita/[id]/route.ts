@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth-server";
 import { getBeritaById, updateBerita, deleteBerita } from "@/lib/berita-server";
-import { getAdminBucket } from "@/lib/firebase-admin";
 
 export const runtime = "nodejs";
 
@@ -12,17 +11,6 @@ function errMsg(e: unknown): { message: string; status: number } {
   const status = (e as { status?: number }).status ?? 500;
   const message = e instanceof Error ? e.message : "Terjadi kesalahan.";
   return { message, status };
-}
-
-function storagePathFromUrl(url: string): string | null {
-  try {
-    const u = new URL(url);
-    const m = u.pathname.match(/\/o\/(.+)$/);
-    if (m?.[1]) return decodeURIComponent(m[1]);
-    return null;
-  } catch {
-    return null;
-  }
 }
 
 export async function GET(_req: Request, { params }: Ctx) {
@@ -61,14 +49,7 @@ export async function DELETE(_req: Request, { params }: Ctx) {
     const { id } = await params;
     const prev = await deleteBerita(id);
     if (!prev) return NextResponse.json({ error: "Berita tidak ditemukan." }, { status: 404 });
-    const path = storagePathFromUrl(prev.image);
-    if (path) {
-      try {
-        await getAdminBucket().file(path).delete({ ignoreNotFound: true });
-      } catch {
-        // file lama boleh gagal dihapus — jangan gagalkan request
-      }
-    }
+    // Gambar Cloudinary (unsigned) tidak dihapus server — biarkan orphan, jangan gagalkan request.
     revalidatePath("/berita");
     revalidatePath("/", "layout");
     return NextResponse.json({ ok: true });

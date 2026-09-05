@@ -4,7 +4,6 @@ import { verifyAdminSession } from "@/lib/auth-server";
 import { adminConfigured } from "@/lib/firebase-admin";
 import { missingEnvReport } from "@/lib/env";
 import { LogoutButton } from "@/components/admin/LogoutButton";
-import { OwlMotif } from "@/components/ui/OwlMotif";
 
 // Guard server-side: verifikasi session cookie kriptografis.
 // proxy.ts hanya cek keberadaan cookie; di sinilah akses benar-benar ditolak.
@@ -19,7 +18,12 @@ export default async function PanelLayout({ children }: { children: React.ReactN
       <header className="sticky top-0 z-40 border-b border-cream/10 bg-navy text-cream">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-6">
           <Link href="/admin" className="flex items-center gap-3">
-            <OwlMotif variant="face" className="size-8 text-cream/90" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/smasa.png"
+              alt="Logo SMAN 1 Lumajang"
+              className="size-8 rounded-full object-contain"
+            />
             <span>
               <span className="block text-xs font-semibold uppercase tracking-[0.28em] text-cream/60">
                 SMASA · Admin

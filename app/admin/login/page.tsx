@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { LoginForm } from "@/components/admin/LoginForm";
-import { OwlMotif } from "@/components/ui/OwlMotif";
 
 export const metadata = { title: "Masuk — Admin SMAN 1 Lumajang", robots: { index: false } };
 
@@ -9,10 +8,14 @@ export default function AdminLoginPage() {
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       <div className="relative hidden overflow-hidden bg-navy text-cream lg:block">
-        <OwlMotif variant="watermark" className="absolute -right-16 top-1/2 size-[480px] -translate-y-1/2 text-cream/10" />
         <div className="relative flex h-full flex-col justify-between p-12">
           <Link href="/" className="flex items-center gap-3">
-            <OwlMotif variant="face" className="size-10 text-cream" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/smasa.png"
+              alt="Logo SMAN 1 Lumajang"
+              className="size-10 rounded-full object-contain"
+            />
             <span className="text-sm uppercase tracking-[0.24em]">SMAN 1 · Lumajang</span>
           </Link>
           <div>
