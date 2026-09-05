@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice">
+  <rect width="800" height="600" fill="#f9f9f8"/>
+  <g opacity="0.18" stroke="#09122b" stroke-width="1.5" fill="none" transform="translate(400,300)">
+    <path d="M0 -90c-28 0-52 18-64 45-6 12-9 26-9 40 0 34 22 66 54 78 5 2 12 3 19 3s14-1 19-3c32-12 54-44 54-78 0-14-3-28-9-40-12-27-36-45-64-45z"/>
+    <circle cx="-28" cy="-20" r="18"/>
+    <circle cx="28" cy="-20" r="18"/>
+    <circle cx="-28" cy="-20" r="6" fill="#09122b" stroke="none"/>
+    <circle cx="28" cy="-20" r="6" fill="#09122b" stroke="none"/>
+    <path d="M0 0v22"/>
+    <path d="M-12 28c8 5 18 5 26 0"/>
+  </g>
+  <text x="400" y="420" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="20" fill="#5f6b7f">Foto asli sekolah — ganti sebelum publikasi</text>
+</svg>
