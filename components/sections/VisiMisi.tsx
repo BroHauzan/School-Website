@@ -1,5 +1,6 @@
 import { Reveal } from "../ui/Reveal";
 import { SectionHeading } from "../ui/SectionHeading";
+import { KEPALA_SEKOLAH } from "@/lib/school";
 
 const VISI =
   "Menjadi lembaga pendidikan yang unggul dalam prestasi, berkarakter religius, dan berwawasan global.";
@@ -12,10 +13,11 @@ const MISI = [
   "Menyediakan sarana dan prasarana pendidikan yang memadai dan modern.",
 ];
 
+/* Kutipan & nama kepala sekolah: nama bersumber dari lib/school.ts. */
 const QUOTE = {
   text: "Pendidikan bukan hanya tentang nilai akademik, tetapi membentuk karakter yang siap menghadapi tantangan masa depan dengan integritas dan kebijaksanaan.",
-  author: "Drs. H. Ahmad Fauzi, M.Pd.",
-  role: "Kepala Sekolah",
+  author: KEPALA_SEKOLAH.nama,
+  role: KEPALA_SEKOLAH.jabatan,
 };
 
 export function VisiMisi() {
