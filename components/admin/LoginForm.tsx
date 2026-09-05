@@ -31,8 +31,17 @@ export function LoginForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ idToken }),
       });
+      const ct = res.headers.get("content-type") ?? "";
       const json = (await res.json().catch(() => null)) as { error?: string } | null;
-      if (!res.ok) throw new Error(json?.error ?? "Login gagal.");
+      if (!res.ok) {
+        // Error spesifik dari server (mis. allowlist, Admin SDK) tampil apa adanya.
+        // Kalau body bukan JSON (fungsi crash / redirect), jangan tutup-tutupi —
+        // tampilkan status + content-type agar langsung ketahuan dari screenshot.
+        if (json?.error) throw new Error(json.error);
+        throw new Error(
+          `Login gagal (HTTP ${res.status}${ct ? `, ${ct.split(";")[0]}` : ""}, respons server bukan JSON). Coba lagi; kalau berlanjut, cek Runtime Logs deployment ini.`
+        );
+      }
       router.push(next);
       router.refresh();
     } catch (err) {

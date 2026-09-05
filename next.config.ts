@@ -21,6 +21,10 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // firebase-admin@14 memakai fitur Node asli (gRPC/dns) lewat subpath
+  // firebase-admin/{app,auth,firestore,storage} — jangan masuk bundler Turbopack,
+  // pakai require() native di runtime fungsi server.
+  serverExternalPackages: ["firebase-admin"],
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "res.cloudinary.com" },
