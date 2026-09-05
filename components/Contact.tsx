@@ -18,7 +18,9 @@ const CONTACT_ROWS = [
   },
   {
     term: "WhatsApp",
-    value: `+62 ${SCHOOL.whatsapp?.replace(/^0/, "")}`,
+    value: SCHOOL.whatsapp
+      ? `+62 ${SCHOOL.whatsapp.replace(/^0/, "")}`
+      : "Menunggu verifikasi sekolah",
     href: waHref(),
   },
   {

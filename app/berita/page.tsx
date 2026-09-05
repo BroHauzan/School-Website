@@ -16,6 +16,28 @@ export const metadata: Metadata = {
 export default function BeritaPage() {
   const [sorotan, ...lainnya] = BERITA;
 
+  if (!sorotan) {
+    return (
+      <>
+        <SiteHeader solidOnTop />
+        <PageHero
+          breadcrumbs={[
+            { href: "/", label: "Beranda" },
+            { href: "/berita", label: "Berita" },
+          ]}
+          title="Kabar Terkini"
+          description="Belum ada berita yang tersedia saat ini."
+        />
+        <main className="bg-cream">
+          <section className="mx-auto max-w-6xl px-6 py-20 lg:py-28">
+            <p className="text-center text-muted">Belum ada berita.</p>
+          </section>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
   return (
     <>
       <SiteHeader solidOnTop />

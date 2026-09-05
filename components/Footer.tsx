@@ -36,7 +36,7 @@ export function Footer() {
   return (
     <footer className="relative overflow-hidden bg-navy text-cream">
       <div className="relative mx-auto max-w-6xl px-6 pb-12 pt-16 text-left">
-        <div className="grid gap-8 md:grid-cols-[1.2fr_1fr_1fr_1fr] lg:grid-cols-[1.2fr_1fr_1fr_1fr_1fr_1fr]">
+        <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-[1.2fr_1fr_1fr_1fr] lg:grid-cols-[1.2fr_1fr_1fr_1fr_1fr_1fr]">
           <div className="flex flex-col items-start">
             <div className="flex items-center justify-start gap-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}

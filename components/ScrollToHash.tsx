@@ -12,6 +12,9 @@ export function ScrollToHash() {
       const hash = window.location.hash;
       if (!hash) return;
 
+      // Validasi: hash harus dimulai dengan # dan hanya berisi karakter alphanumeric, dash, underscore
+      if (!hash || !/^#[a-zA-Z0-9_-]+$/.test(hash)) return;
+
       const el = document.querySelector(hash);
       if (!el) return;
 

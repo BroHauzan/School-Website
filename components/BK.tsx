@@ -50,7 +50,11 @@ export function BK() {
                   Setiap percakapan dijaga kerahasiaannya.
                 </p>
                 <p className="mt-5 text-sm font-medium text-ink">
-                  {"// TODO: nama koordinator & kontak BK perlu verifikasi sekolah."}
+                  Hubungi kami melalui halaman{" "}
+                  <a href="/#kontak" className="underline underline-offset-2 hover:text-navy-muted transition-colors">
+                    Kontak
+                  </a>{" "}
+                  untuk informasi lebih lanjut.
                 </p>
               </div>
             </Reveal>
