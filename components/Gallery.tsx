@@ -60,7 +60,7 @@ export function Gallery() {
           description="Bukan galeri promosi yang dipoles, tapi potongan jujur dari hari-hari di kampus. Semua foto di bawah adalah dokumentasi asli."
         />
 
-        <div className="mt-16 columns-1 gap-5 sm:columns-2 lg:columns-3">
+        <div className="mt-16 columns-2 gap-5 sm:columns-2 lg:columns-3">
           {MOMENTS.map(({ caption, src, wide }, i) => (
             <Reveal key={caption} delay={(i % 3) * 0.08} className="mb-5 break-inside-avoid">
               <figure

@@ -1,5 +1,6 @@
 import { Reveal } from "./Reveal";
 import { SectionHeading } from "./SectionHeading";
+import Link from "next/link";
 
 /**
  * Bimbingan Konseling (BK).
@@ -51,9 +52,9 @@ export function BK() {
                 </p>
                 <p className="mt-5 text-sm font-medium text-ink">
                   Hubungi kami melalui halaman{" "}
-                  <a href="/#kontak" className="underline underline-offset-2 hover:text-navy-muted transition-colors">
+                  <Link href="/#kontak" className="underline underline-offset-2 hover:text-navy-muted transition-colors">
                     Kontak
-                  </a>{" "}
+                  </Link>{" "}
                   untuk informasi lebih lanjut.
                 </p>
               </div>

@@ -24,17 +24,17 @@ export function Academic() {
           description="Tiga jalur peminatan — Sosial dan Hukum, Teknik, dan Kesehatan — masing-masing dengan muatan mata pelajaran inti yang relevan."
         />
 
-        <div className="mt-16 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-navy/10 bg-navy/10 lg:grid-cols-4">
+        <div className="mt-16 grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-navy/10 bg-navy/10 sm:grid-cols-2 lg:grid-cols-4">
           {PROGRAM_AKADEMIK.map((jurusan, i) => (
-            <Reveal key={jurusan.code} delay={i * 0.1}>
+            <Reveal key={jurusan.code} delay={i * 0.1} className="min-w-0">
               <article
                 aria-label={`${jurusan.name} — ${jurusan.subjects.length} mata pelajaran`}
-                className="group relative flex h-full flex-col bg-cream p-8 transition-colors duration-500 hover:bg-navy"
+                className="group relative flex h-full min-w-0 flex-col overflow-hidden bg-cream p-6 transition-colors duration-500 hover:bg-navy sm:p-8"
               >
                 {/* Code besar — dekoratif / penanda jalur */}
                 <span
                   aria-hidden="true"
-                  className="block font-display text-4xl font-semibold italic tracking-tight text-navy/20 transition-colors duration-500 group-hover:text-cream/20"
+                  className="block font-display text-2xl font-semibold italic tracking-tight text-navy/20 transition-colors duration-500 group-hover:text-cream/20 sm:text-3xl lg:text-4xl"
                 >
                   {jurusan.code}
                 </span>
