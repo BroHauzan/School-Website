@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/auth-server";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED_TYPES = new Set([

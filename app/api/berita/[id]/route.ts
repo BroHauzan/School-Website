@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/auth-server";
 import { getBeritaById, updateBerita, deleteBerita } from "@/lib/berita-server";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 type Ctx = { params: Promise<{ id: string }> };
 

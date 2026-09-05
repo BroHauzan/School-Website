@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/auth-server";
 import { listBerita, createBerita } from "@/lib/berita-server";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 function errMsg(e: unknown): { message: string; status: number } {
   const status = (e as { status?: number }).status ?? 500;

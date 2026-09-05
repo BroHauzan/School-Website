@@ -1,5 +1,4 @@
 import "server-only";
-import { cookies } from "next/headers";
 import { getAdminAuth, adminConfigured } from "./firebase-admin";
 import { adminAllowlist } from "./env";
 import { SESSION_COOKIE, SESSION_MAX_AGE } from "./auth-cookie";
@@ -21,6 +20,10 @@ export async function mintSessionCookie(idToken: string): Promise<string> {
 }
 
 export async function readSessionCookie(): Promise<string | undefined> {
+  // Dynamic import: next/headers hanya dibutuhkan di sini. Kalau diimpor di level
+  // modul, seluruh route yang memakai auth-server ikut mati saat next/headers
+  // bermasalah di runtime (mintSessionCookie sendiri tidak butuh cookies).
+  const { cookies } = await import("next/headers");
   const jar = await cookies();
   return jar.get(SESSION_COOKIE)?.value;
 }
