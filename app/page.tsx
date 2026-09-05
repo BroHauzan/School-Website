@@ -1,6 +1,5 @@
 import { Hero } from "@/components/Hero";
 import { Berita } from "@/components/Berita";
-import { About } from "@/components/About";
 import { SectionDivider } from "@/components/SectionDivider";
 import { Academic } from "@/components/Academic";
 import { Gallery } from "@/components/Gallery";
@@ -17,7 +16,6 @@ export default function Home() {
         <Hero />
         <Berita />
         <SectionDivider className="my-2" />
-        <About />
         <Academic />
         <Gallery />
         <Testimonials />

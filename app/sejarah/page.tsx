@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Footer } from "@/components/Footer";
 import { PageHero } from "@/components/PageHero";
+import { About } from "@/components/About";
 import { Sejarah } from "@/components/Sejarah";
 
 export const metadata: Metadata = {
@@ -27,6 +28,7 @@ export default function SejarahPage() {
         description="Perjalanan SMAN 1 Lumajang dalam membentuk generasi unggul sejak awal berdiri."
       />
       <main>
+        <About />
         <Sejarah />
       </main>
       <Footer />

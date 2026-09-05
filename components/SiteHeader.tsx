@@ -16,6 +16,8 @@ const NAV: NavItem[] = [
       { href: "/sejarah", label: "Sejarah" },
       { href: "/visi-misi", label: "Visi Misi" },
       { href: "/struktur", label: "Struktur" },
+      { href: "/alumni", label: "Alumni" },
+      { href: "/komite-sekolah", label: "Komite" },
     ],
   },
   {
@@ -31,8 +33,6 @@ const NAV: NavItem[] = [
     label: "Layanan",
     children: [
       { href: "/bk", label: "BK" },
-      { href: "/alumni", label: "Alumni" },
-      { href: "/komite-sekolah", label: "Komite" },
     ],
   },
   { href: "/berita", label: "Berita" },
