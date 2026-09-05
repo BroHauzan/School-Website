@@ -36,7 +36,6 @@ const NAV: NavItem[] = [
     ],
   },
   { href: "/berita", label: "Berita" },
-  { href: "/#tentang", label: "Tentang" },
   { href: "/prestasi", label: "Prestasi" },
   { href: "/#kontak", label: "Kontak" },
 ];

@@ -41,7 +41,7 @@ export function Sejarah() {
           eyebrow="Sejak 1960"
           title={
             <>
-              Enam dekade<i className="text-cream/60">&nbsp;SMASA</i>
+              Empat dekade<i className="text-cream/60">&nbsp;SMASA</i>
             </>
           }
           description="Dari dua ruang kelas pinjaman hingga sekolah rujukan — perjalanan SMA Negeri 1 Lumajang dalam empat periode."

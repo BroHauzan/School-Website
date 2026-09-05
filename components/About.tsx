@@ -68,7 +68,7 @@ export function About() {
                   {SCHOOL.established}
                 </p>
                 <p className="mt-2 text-sm leading-relaxed text-muted">
-                  Tahun berdiri; lebih dari enam dekade melahirkan lulusan yang
+                  Tahun berdiri; lebih dari empat dekade melahirkan lulusan yang
                   melanjutkan studinya ke seluruh penjuru negeri.
                 </p>
               </div>

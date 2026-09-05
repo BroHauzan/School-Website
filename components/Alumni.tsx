@@ -39,7 +39,7 @@ export function Alumni() {
                 Alumni<i className="text-cream/60">&nbsp;SMASA</i>
               </>
             }
-            description="Lebih dari enam dekade, burung hantu ini melepas terbang generasinya. Mereka kembali sebagai cahaya bagi generasi berikutnya."
+            description="Lebih dari empat dekade, burung hantu ini melepas terbang generasinya. Mereka kembali sebagai cahaya bagi generasi berikutnya."
           />
 
           <Reveal delay={0.1}>
