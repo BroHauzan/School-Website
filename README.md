@@ -190,7 +190,3 @@ Bila API tiba-tiba 500, cek `/api/health` lebih dulu: health 200 tapi rute lain 
 
 - `DESIGN_SYSTEM.md` — token warna, tipografi Playfair Display/Geist, pola card, anatomi halaman baru, checklist.
 - `FIREBASE_SETUP.md` — langkah setup console: service account, Auth, rules, index.
-
-
-
-
