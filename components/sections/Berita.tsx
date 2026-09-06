@@ -4,9 +4,13 @@ import { listBerita } from "@/lib/berita-server";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
+/** Maksimal berita yang ditampilkan di homepage — limit hanya mempersempit
+ *  tampilan, query tetap ambil 100. Ubah angka ini untuk menambah/mengurangi. */
+const HOMEPAGE_LIMIT = 5;
+
 export async function Berita() {
   const docs = await listBerita();
-  const items = docs.map((d) => ({
+  const items = docs.slice(0, HOMEPAGE_LIMIT).map((d) => ({
     slug: d.slug,
     title: d.title,
     excerpt: d.excerpt,
