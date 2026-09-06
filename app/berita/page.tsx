@@ -99,14 +99,13 @@ export default async function BeritaPage() {
                   className="absolute inset-0 h-full w-full object-cover opacity-90 transition-transform duration-700 group-hover:scale-[1.04]"
                   loading="lazy"
                 />
-                <span className="absolute left-5 top-5 rounded-full bg-navy/85 px-4 py-1.5 text-[10px] font-semibold uppercase tracking-[0.24em] text-cream">
-                  {sorotan.tag}
-                </span>
               </div>
               <div className="flex flex-col justify-center p-7 lg:p-12">
-                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-navy-muted">
-                  Sorotan · {sorotan.dateLabel}
-                </p>
+                <div className="flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.22em] text-muted">
+                  <span className="font-semibold text-navy-muted">{sorotan.tag}</span>
+                  <span aria-hidden="true" className="h-px w-6 bg-navy/20" />
+                  <span>Sorotan &middot; {sorotan.dateLabel}</span>
+                </div>
                 <h2 className="mt-4 font-display text-3xl leading-tight tracking-[-0.01em] text-ink lg:text-4xl">
                   {sorotan.title}
                 </h2>
@@ -136,12 +135,13 @@ export default async function BeritaPage() {
                           className="h-full w-full object-cover opacity-90 transition-transform duration-700 group-hover:scale-[1.04]"
                           loading="lazy"
                         />
-                        <span className="absolute left-4 top-4 rounded-full bg-navy/85 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-cream">
-                          {item.tag}
-                        </span>
                       </div>
                       <div className="flex flex-1 flex-col p-6">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-muted">{item.dateLabel}</p>
+                        <div className="flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.22em] text-muted">
+                          <span className="font-semibold text-navy-muted">{item.tag}</span>
+                          <span aria-hidden="true" className="h-px w-6 bg-navy/20" />
+                          <span>{item.dateLabel}</span>
+                        </div>
                         <h3 className="mt-3 font-display text-xl leading-snug text-ink transition-colors group-hover:text-navy-muted">
                           {item.title}
                         </h3>

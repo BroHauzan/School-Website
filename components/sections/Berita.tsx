@@ -63,12 +63,13 @@ export async function Berita() {
                   className="h-full w-full object-cover opacity-90 transition-transform duration-700 group-hover:scale-[1.04]"
                   loading="lazy"
                 />
-                <span className="absolute left-5 top-5 rounded-full bg-navy/85 px-4 py-1.5 text-[10px] font-semibold uppercase tracking-[0.24em] text-cream">
-                  {lead.tag}
-                </span>
               </div>
               <div className="flex flex-1 flex-col p-7 lg:p-9">
-                <p className="text-xs uppercase tracking-[0.24em] text-muted">{lead.date}</p>
+                <div className="flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.22em] text-muted">
+                  <span className="font-semibold text-navy-muted">{lead.tag}</span>
+                  <span aria-hidden="true" className="h-px w-6 bg-navy/20" />
+                  <span>{lead.date}</span>
+                </div>
                 <h3 className="mt-4 font-display text-2xl leading-snug tracking-[-0.01em] text-ink lg:text-[1.9rem]">
                   {lead.title}
                 </h3>
