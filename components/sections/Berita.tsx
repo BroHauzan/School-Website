@@ -65,11 +65,7 @@ export async function Berita() {
                 />
               </div>
               <div className="flex flex-1 flex-col p-7 lg:p-9">
-                <div className="flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.22em] text-muted">
-                  <span className="font-semibold text-navy-muted">{lead.tag}</span>
-                  <span aria-hidden="true" className="h-px w-6 bg-navy/20" />
-                  <span>{lead.date}</span>
-                </div>
+                <p className="text-[11px] uppercase tracking-[0.22em] text-muted">{lead.date}</p>
                 <h3 className="mt-4 font-display text-2xl leading-snug tracking-[-0.01em] text-ink lg:text-[1.9rem]">
                   {lead.title}
                 </h3>
@@ -96,8 +92,6 @@ export async function Berita() {
                     )}
                   >
                     <div className="flex items-center gap-3 text-[11px] uppercase tracking-[0.22em] text-muted">
-                      <span className="font-semibold text-navy-muted">{item.tag}</span>
-                      <span aria-hidden="true" className="h-px w-6 bg-navy/20" />
                       <span>{item.date}</span>
                     </div>
                     <h3 className="mt-3 font-display text-xl leading-snug text-ink transition-colors group-hover:text-navy-muted lg:text-[1.4rem]">

@@ -148,11 +148,7 @@ export default async function BeritaDetailPage({ params }: BeritaDetailProps) {
                         />
                       </div>
                       <div className="flex flex-1 flex-col p-6">
-                        <div className="flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.22em] text-muted">
-                          <span className="font-semibold text-navy-muted">{related.tag}</span>
-                          <span aria-hidden="true" className="h-px w-6 bg-navy/20" />
-                          <span>{related.dateLabel}</span>
-                        </div>
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-muted">{related.dateLabel}</p>
                         <h3 className="mt-3 font-display text-xl leading-snug text-ink transition-colors group-hover:text-navy-muted">
                           {related.title}
                         </h3>

@@ -101,11 +101,7 @@ export default async function BeritaPage() {
                 />
               </div>
               <div className="flex flex-col justify-center p-7 lg:p-12">
-                <div className="flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.22em] text-muted">
-                  <span className="font-semibold text-navy-muted">{sorotan.tag}</span>
-                  <span aria-hidden="true" className="h-px w-6 bg-navy/20" />
-                  <span>Sorotan &middot; {sorotan.dateLabel}</span>
-                </div>
+                <p className="text-[11px] uppercase tracking-[0.22em] text-muted">{sorotan.dateLabel}</p>
                 <h2 className="mt-4 font-display text-3xl leading-tight tracking-[-0.01em] text-ink lg:text-4xl">
                   {sorotan.title}
                 </h2>
@@ -137,11 +133,7 @@ export default async function BeritaPage() {
                         />
                       </div>
                       <div className="flex flex-1 flex-col p-6">
-                        <div className="flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.22em] text-muted">
-                          <span className="font-semibold text-navy-muted">{item.tag}</span>
-                          <span aria-hidden="true" className="h-px w-6 bg-navy/20" />
-                          <span>{item.dateLabel}</span>
-                        </div>
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-muted">{item.dateLabel}</p>
                         <h3 className="mt-3 font-display text-xl leading-snug text-ink transition-colors group-hover:text-navy-muted">
                           {item.title}
                         </h3>
