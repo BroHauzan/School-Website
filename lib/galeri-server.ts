@@ -10,6 +10,7 @@ export { type GaleriDoc };
 function snapToDoc(snap: DocumentSnapshot): GaleriDoc {
   const d = snap.data() as Record<string, unknown>;
   const norm = normalizeGaleriInput(d, undefined);
+  if (!isValidImageUrl(norm.src)) norm.src = "/hero-school.webp";
   return {
     id: snap.id,
     ...norm,

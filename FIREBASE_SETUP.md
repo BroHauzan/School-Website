@@ -15,7 +15,7 @@
 ## 3. Auth admin
 1. Console > Build > Authentication > Sign-in method > aktifkan Email/Password.
 2. Users > Add user (email + password admin).
-3. Opsional: isi `ADMIN_EMAILS=email@sekolah,id` untuk allowlist.
+3. WAJIB: isi `ADMIN_EMAILS=email@sekolah,id`. Fail-closed: kosong = login ditolak.
 
 ## 4. Rules
 Deploy manual via Console:
@@ -30,7 +30,7 @@ Salin semua key dari `.env.example` ke Vercel Project > Settings > Environment V
   `NEXT_PUBLIC_*` di-inline saat build, jadi Preview yang tidak punya variabel ini
   akan build dengan konfigurasi Firebase kosong.
 - `ADMIN_EMAILS` isi tipe **Config** (bukan Secret) supaya nilainya bisa dibaca guard
-  allowlist di `lib/auth-server.ts`. Kosong = allowlist tidak menegakkan apa pun.
+   allowlist di `lib/auth-server.ts`. Kosong = login admin ditolak (fail-closed).
 
 ## 6. Skema Firestore
 Koleksi `berita`, dokumen:

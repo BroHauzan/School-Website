@@ -14,6 +14,7 @@ export function validateGaleri(input: Record<string, unknown>): { ok: boolean; e
   const str = (k: string) => String(input[k] ?? "").trim();
   if (str("caption").length < 3) errors.push("Caption minimal 3 karakter.");
   if (str("caption").length > 160) errors.push("Caption maksimal 160 karakter.");
+  if (/[<>]/.test(str("caption"))) errors.push("Caption tidak boleh mengandung karakter < atau >.");
   const src = str("src");
   if (!src) errors.push("Gambar wajib diisi.");
   else if (!/^\/(?!\/)/.test(src) && !/^https:\/\/(res\.cloudinary\.com|firebasestorage\.googleapis\.com|storage\.googleapis\.com)\//.test(src)) {

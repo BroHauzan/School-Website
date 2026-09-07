@@ -56,6 +56,9 @@ export function validateBerita(input: Record<string, unknown>): { ok: boolean; e
   if (img && !/^\/(?!\/)/.test(img) && !/^https:\/\/(res\.cloudinary\.com|firebasestorage\.googleapis\.com|storage\.googleapis\.com)\//.test(img)) {
     errors.push("URL gambar harus path lokal atau https dari res.cloudinary.com / Firebase Storage.");
   }
+  if (/[<>]/.test(str("title") + str("excerpt") + str("tag"))) errors.push("Judul, ringkasan, dan tag tidak boleh mengandung karakter < atau >.");
+  const bodyRaw = Array.isArray(body) ? body.map((p) => String(p)).join(" ") : "";
+  if (/[<>]/.test(bodyRaw)) errors.push("Isi berita tidak boleh mengandung karakter < atau >.");
   return { ok: errors.length === 0, errors };
 }
 

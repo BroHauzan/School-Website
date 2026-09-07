@@ -18,6 +18,7 @@ export { type BeritaDoc };
 function snapToDoc(snap: DocumentSnapshot): BeritaDoc {
   const d = snap.data() as Record<string, unknown>;
   const norm = normalizeBeritaInput(d, undefined);
+  if (!isValidImageUrl(norm.image)) norm.image = "/hero-school.webp";
   return {
     id: snap.id,
     ...norm,

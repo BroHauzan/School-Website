@@ -4,7 +4,7 @@ import { SESSION_COOKIE } from "@/lib/auth-cookie";
 
 // Next 16: middleware.ts deprecated -> proxy.ts.
 // Guard ringan: cek keberadaan cookie saja. Verifikasi kriptografis
-// dilakukan di app/admin/layout.tsx + setiap API route (jangan di sini).
+// dilakukan di app/admin/layout.tsx + app/admin/(panel)/layout.tsx + API routes (jangan di sini).
 export default function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const hasSession = Boolean(request.cookies.get(SESSION_COOKIE)?.value);
@@ -25,5 +25,5 @@ export default function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin", "/admin/:path*"],
 };

@@ -11,7 +11,7 @@ export type AdminSession = { uid: string; email: string | null };
 export async function mintSessionCookie(idToken: string): Promise<string> {
   const auth = getAdminAuth();
   const decoded = await auth.verifyIdToken(idToken, true);
-  const email = (decoded.email ?? "").toLowerCase();
+  const email = (decoded.email ?? "").trim().toLowerCase();
   const allow = adminAllowlist();
   if (allow.length === 0) {
     throw Object.assign(
@@ -20,8 +20,8 @@ export async function mintSessionCookie(idToken: string): Promise<string> {
     );
   }
   if (!allow.includes(email)) {
-    throw Object.assign(new Error("Email tidak terdaftar sebagai admin."), {
-      status: 403,
+    throw Object.assign(new Error("Email atau kata sandi salah."), {
+      status: 401,
     });
   }
   return auth.createSessionCookie(idToken, { expiresIn: EXPIRES_IN });
@@ -42,7 +42,7 @@ export async function verifyAdminSession(): Promise<AdminSession | null> {
   if (!token) return null;
   try {
     const decoded = await getAdminAuth().verifySessionCookie(token, true);
-    const email = (decoded.email ?? "").toLowerCase();
+    const email = (decoded.email ?? "").trim().toLowerCase();
     const allow = adminAllowlist();
     if (allow.length === 0) return null;
     if (!allow.includes(email)) return null;
