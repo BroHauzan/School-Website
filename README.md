@@ -2,6 +2,8 @@
 
 Situs resmi SMA Negeri 1 Lumajang (SMASA). Landing page + 14 halaman profil/akademik/layanan + arsip berita, galeri, dan panel admin CMS untuk humas sekolah.
 
+> 🔗 **Live di produksi:** [https://school-website-khaki-psi.vercel.app/](https://school-website-khaki-psi.vercel.app/) — auto-deploy dari `main` via Vercel.
+
 ## Stack
 
 | Dependency | Versi | Catatan |
@@ -180,7 +182,7 @@ Deploy lewat CLI `npx firebase-tools deploy --only firestore:indexes --project <
 
 ## Deploy
 
-Siap ke Vercel (Node 22; `.vercel` sudah di-ignore). Alternatif: `npm run build && npm start` di VPS.
+Sudah **live di produksi** di Vercel: [https://school-website-khaki-psi.vercel.app/](https://school-website-khaki-psi.vercel.app/) ([dashboard project](https://vercel.com/bro-hauzan/school-website)). Tiap push ke `main` otomatis deploy. Node 22; `.vercel` sudah di-ignore. Alternatif: `npm run build && npm start` di VPS.
 
 > **Jangan** pakai `output: 'export'`. Panel admin, API route, session cookie, dan baca Firestore di server butuh runtime Node — ekspor statis akan mematikan seluruh CMS.
 
