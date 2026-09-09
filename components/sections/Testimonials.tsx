@@ -8,19 +8,19 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
  */
 const TESTIMONIALS = [
   {
-    quote: "Placeholder kutipan siswa. Ganti dengan cerita nyata.",
-    name: "Nama Siswa",
-    role: "Siswa, angkatan 2024",
+    quote: "Temui aku di rasa sesalmu.",
+    name: "Arya Eka Maulidhani",
+    role: "Siswa, angkatan 2027",
   },
   {
-    quote: "Placeholder kutipan alumni. Ganti dengan cerita nyata.",
-    name: "Nama Alumni",
-    role: "Alumni, angkatan 2019",
+    quote: "Almamater yang pernah aku banggakan kala itu.",
+    name: "Awang Pramudya Tamblighi",
+    role: "Siswa, angkatan 2027",
   },
   {
-    quote: "Placeholder kutipan guru. Ganti dengan cerita nyata.",
-    name: "Nama Guru",
-    role: "Guru mata pelajaran",
+    quote: "Mencoba berpeluang sukses dan gagal daripada tidak mencoba sama sekali.",
+    name: "Novemas Heka Alfarizi ",
+    role: "Siswa, angkatan 2027",
   },
 ];
 
