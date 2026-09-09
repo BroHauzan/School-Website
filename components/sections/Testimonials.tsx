@@ -10,17 +10,17 @@ const TESTIMONIALS = [
   {
     quote: "Temui aku di rasa sesalmu.",
     name: "Arya Eka Maulidhani",
-    role: "Siswa, angkatan 2027",
+    role: "Siswa, angkatan 64",
   },
   {
     quote: "Almamater yang pernah aku banggakan kala itu.",
-    name: "Awang Pramudya Tamblighi",
-    role: "Siswa, angkatan 2027",
+    name: "Awang Pramudya T.",
+    role: "Siswa, angkatan 64",
   },
   {
     quote: "Mencoba berpeluang sukses dan gagal daripada tidak mencoba sama sekali.",
     name: "Novemas Heka Alfarizi ",
-    role: "Siswa, angkatan 2027",
+    role: "Siswa, angkatan 64",
   },
 ];
 
