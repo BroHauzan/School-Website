@@ -12,13 +12,8 @@ import { cn } from "@/lib/utils";
  */
 const FACILITIES = [
   {
-    title: "Lab Komputer",
-    desc: "PC modern, internet fiber, dan tools pengembangan.",
-    src: "/placeholder-sekolah.svg",
-  },
-  {
-    title: "Aula Indoor",
-    desc: "Apel, seminar, dan pentas dalam satu ruang besar.",
+    title: "Lab Biologi",
+    desc: "Mikroskop dan alat praktikum biologi modern.",
     src: "/placeholder-sekolah.svg",
   },
   {
@@ -32,8 +27,93 @@ const FACILITIES = [
     src: "/placeholder-sekolah.svg",
   },
   {
-    title: "Multimedia",
+    title: "Lab Komputer",
+    desc: "PC modern, internet fiber, dan tools pengembangan.",
+    src: "/placeholder-sekolah.svg",
+  },
+  {
+    title: "Lab Bahasa",
+    desc: "Latihan listening dan speaking bahasa asing.",
+    src: "/placeholder-sekolah.svg",
+  },
+  {
+    title: "Lab Multimedia",
     desc: "Produksi konten Media Center sekolah.",
+    src: "/placeholder-sekolah.svg",
+  },
+  {
+    title: "Lab Matematika",
+    desc: "Media belajar matematika interaktif.",
+    src: "/placeholder-sekolah.svg",
+  },
+  {
+    title: "Lab IPS",
+    desc: "Peta, globe, dan media belajar sosial.",
+    src: "/placeholder-sekolah.svg",
+  },
+  {
+    title: "Perpustakaan",
+    desc: "Koleksi buku dan ruang baca yang tenang.",
+    src: "/placeholder-sekolah.svg",
+  },
+  {
+    title: "Ruang Guru",
+    desc: "Pusat koordinasi seluruh pengajar SMASA.",
+    src: "/placeholder-sekolah.svg",
+  },
+  {
+    title: "UKS",
+    desc: "Layanan kesehatan dan P3K siswa.",
+    src: "/placeholder-sekolah.svg",
+  },
+  {
+    title: "Masjid Sekolah",
+    desc: "Ibadah harian dan kegiatan keagamaan.",
+    src: "/placeholder-sekolah.svg",
+  },
+  {
+    title: "Aula Indoor",
+    desc: "Apel, seminar, dan pentas dalam satu ruang besar.",
+    src: "/placeholder-sekolah.svg",
+  },
+  {
+    title: "Lapangan Basket",
+    desc: "Lapangan standar latihan dan pertandingan basket.",
+    src: "/placeholder-sekolah.svg",
+  },
+  {
+    title: "Lapangan Voli",
+    desc: "Lapangan voli untuk latihan dan turnamen.",
+    src: "/placeholder-sekolah.svg",
+  },
+  {
+    title: "Lapangan Tenis",
+    desc: "Lapangan tenis untuk ekskul dan latihan rutin.",
+    src: "/placeholder-sekolah.svg",
+  },
+  {
+    title: "Lapangan Gateball",
+    desc: "Home base ekskul gateball SMASA.",
+    src: "/placeholder-sekolah.svg",
+  },
+  {
+    title: "Owl Food Court",
+    desc: "Kantin sekolah dengan pilihan menu sehat.",
+    src: "/placeholder-sekolah.svg",
+  },
+  {
+    title: "Owl Printing",
+    desc: "Print, fotokopi, dan keperluan tugas siswa.",
+    src: "/placeholder-sekolah.svg",
+  },
+  {
+    title: "Kamar Mandi",
+    desc: "Sanitasi bersih tersebar di tiap gedung.",
+    src: "/placeholder-sekolah.svg",
+  },
+  {
+    title: "Parkiran",
+    desc: "Area parkir kendaraan siswa dan guru.",
     src: "/placeholder-sekolah.svg",
   },
 ];
@@ -87,7 +167,7 @@ export function Facilities() {
               belajar
             </>
           }
-          description="Lima ruang yang paling sering dipakai siswa — lab, aula, dan ruang kreatif. Geser untuk tur singkat kampus."
+          description="Ruang belajar, ibadah, olahraga, hingga layanan pendukung. Geser untuk tur singkat kampus."
         />
 
         <Reveal delay={0.1} className="mt-16">
@@ -197,7 +277,7 @@ export function Facilities() {
               </svg>
             </button>
 
-            <div className="mt-6 flex items-center justify-center gap-1">
+            <div className="mt-6 hidden items-center justify-center gap-1 sm:flex">
               {FACILITIES.map((f, i) => (
                 <button
                   key={f.title}

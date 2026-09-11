@@ -6,7 +6,7 @@ import { Facilities } from "@/components/sections/Facilities";
 
 export const metadata: Metadata = {
   title: "Fasilitas — SMAN 1 Lumajang",
-  description: "Fasilitas pendukung belajar SMAN 1 Lumajang.",
+  description: "21 fasilitas pendukung belajar SMAN 1 Lumajang — lab, perpustakaan, olahraga, dan layanan siswa.",
 };
 
 export default function FasilitasPage() {
@@ -20,10 +20,10 @@ export default function FasilitasPage() {
         ]}
         title={
           <>
-            Fasilitas <i className="text-cream/70">Kampus</i>
+            Fasilitas <i className="text-cream/70">SMAN 1 Lumajang</i>
           </>
         }
-        description="Lab, aula, dan ruang kreatif — tur singkat lima fasilitas yang paling sering dipakai siswa SMAN 1 Lumajang."
+        description="Dari laboratorium hingga lapangan olahraga — tur singkat 21 fasilitas kampus SMAN 1 Lumajang."
       />
       <main id="konten-utama">
         <Facilities />

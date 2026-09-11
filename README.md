@@ -47,7 +47,7 @@ Tanpa env, situs tetap jalan: halaman berita/galeri tampil kosong atau fallback 
 | `/data-lulusan` | Data kelulusan |
 | `/snbp-snbt` | Jalur penerimaan |
 | `/bk` | Bimbingan konseling |
-| `/prestasi` | Prestasi |
+| `/prestasi` | Prestasi siswa — dari Firestore, diinput via `/admin/prestasi` (multi-peraih + kelas + tanggal) |
 | `/fasilitas` | Fasilitas — coverflow slider (autoplay 5s, keyboard ←/→, swipe) |
 | `/eskul` | Ekstrakurikuler |
 | `/ppdb` | PPDB + countdown |
@@ -65,10 +65,14 @@ Akademik **bukan** rute terpisah — dirender sebagai section `Academic` di `/`.
 | `/admin/galeri` | Dashboard + tabel foto galeri |
 | `/admin/galeri/baru` | Tambah foto |
 | `/admin/galeri/[id]/ubah` | Ubah foto |
+| `/admin/prestasi` | Dashboard + tabel prestasi |
+| `/admin/prestasi/baru` | Tambah prestasi (tahun, tingkat, nama, peraih, kelas) |
+| `/admin/prestasi/[id]/ubah` | Ubah prestasi |
 | `/api/berita` | `GET` daftar, `POST` buat |
 | `/api/berita/[id]` | `PATCH` ubah, `DELETE` hapus |
 | `/api/berita/upload` | `POST` gambar → Cloudinary folder `berita` |
 | `/api/galeri`, `/api/galeri/[id]`, `/api/galeri/upload` | Sama seperti berita, folder `galeri` |
+| `/api/prestasi`, `/api/prestasi/[id]` | CRUD prestasi (tanpa upload — teks saja) |
 | `/api/auth/session` | `POST` mint session cookie, `DELETE` logout + revokasi token |
 | `/api/health` | Probe tanpa dependency — pemisah error platform vs error library |
 
@@ -80,14 +84,15 @@ Semua halaman admin dan seluruh API route `force-dynamic`. Setiap tulis data mem
 app/                     # halaman (App Router) + layout, error, not-found
 app/berita/[slug]/       # detail berita, generateStaticParams
 app/admin/login/         # halaman login (di luar grup panel)
-app/admin/(panel)/       # guard server + shell panel: berita & galeri CRUD
+app/admin/(panel)/       # guard server + shell panel: berita, galeri & prestasi CRUD + loading skeleton
 app/api/                 # route handler: berita, galeri, auth/session, health
 app/sitemap.ts           # 16 rute statis + entri berita dari Firestore
 app/robots.ts            # allow /, disallow /admin dan /api
 components/sections/     # 19 section homepage & halaman (Hero, Berita, Gallery, …)
 components/ui/           # SiteHeader, Footer, PageHero, SectionHeading, Reveal,
                          # SectionDivider, BackToTop, ScrollToHash, OwlMotif
-components/admin/        # BeritaForm/Table, GaleriForm/Table, ImageUploadField,
+components/admin/        # BeritaForm/Table, GaleriForm/Table, PrestasiForm/Table,
+                         # PanelNav (active state + feedback klik), ImageUploadField,
                          # LoginForm, LogoutButton, ConfirmDialog, Field
 lib/                     # lihat tabel modul di bawah
 public/                  # smasa.webp/.png, hero-school.webp, placeholder-sekolah.svg, owl-*.svg
@@ -107,6 +112,7 @@ FIREBASE_SETUP.md        # setup console: service account, Auth, rules, index
 | `school.ts` | Satu sumber kebenaran data resmi sekolah: profil, NPSN, akreditasi, kontak, `MAPS`, `SOCIALS`, program akademik, ekskul, struktur, komite. Field `null` = belum diverifikasi → tampil `UNVERIFIED_LABEL` |
 | `berita-server.ts` / `berita-schema.ts` | CRUD Firestore `berita`, validasi + normalisasi, slug unik, fallback saat composite index belum Ready |
 | `galeri-server.ts` / `galeri-schema.ts` | CRUD Firestore `galeri`, urut `order` |
+| `prestasi-server.ts` / `prestasi-schema.ts` | CRUD Firestore `prestasi` (tahun, tingkat Kab/Prov/Nas, nama, peraih), urut `year` desc |
 | `auth-server.ts` | `mintSessionCookie`, `verifyAdminSession`, `requireAdmin`, `sessionCookieOptions`, `assertSameOrigin` |
 | `auth-cookie.ts` | Nama cookie + umur sesi (edge-safe, tanpa `server-only`, dipakai `proxy.ts`) |
 | `firebase.ts` / `firebase-admin.ts` | Init client SDK / Admin SDK, guard `adminConfigured()` |
@@ -119,11 +125,12 @@ FIREBASE_SETUP.md        # setup console: service account, Auth, rules, index
 
 ## Sumber data
 
-- **Berita** hanya dari koleksi Firestore `berita`. Tidak ada artikel dummy/seed di repo (`lib/berita.ts` sudah dihapus). Field: `slug`, `title`, `excerpt`, `tag`, `image`, `body[]`, `featured`, `published`, `dateISO`, `dateLabel`, `createdAt`, `updatedAt`.
+- **Berita** hanya dari koleksi Firestore `berita`. Tidak ada artikel dummy/seed di repo. Field: `slug`, `title`, `excerpt`, `tag`, `image`, `body[]`, `featured`, `published`, `dateISO`, `dateLabel`, `createdAt`, `updatedAt`.
   Firestore kosong → `/berita` tampil empty state dan section Berita di homepage tidak dirender.
 - **Galeri** dari koleksi `galeri`: `caption`, `src`, `wide`, `order`, `published`. Urut naik lewat `order`. Kosong → 7 kartu placeholder agar layout masonry tidak rusak (deskripsi section otomatis berubah jadi "masih placeholder").
-- **Homepage** menampilkan maksimal 5 berita terbaru (`HOMEPAGE_LIMIT` di `components/sections/Berita.tsx`); halaman `/berita` menampilkan sampai 100.
-- **Fasilitas** masih data statis di `components/sections/Facilities.tsx` dengan `src="/placeholder-sekolah.svg"` — perlu diganti foto asli sebelum publikasi.
+- **Homepage** menampilkan maksimal 5 berita terbaru (`HOMEPAGE_LIMIT` di `components/sections/Berita.tsx`); halaman `/berita` menampilkan sampai 100 dan punya filter chip per bulan (`/berita?bulan=YYYY-MM`, label Indonesia, bulan diambil dari berita yang ada).
+- **Prestasi** dari koleksi Firestore `prestasi`: `year`, `dateISO` (opsional, "YYYY-MM-DD", default hari ini saat input baru) + `dateLabel` hasil format, `scope` (Kabupaten/Provinsi/Nasional), `title`, `peraih[]` (`nama` + `kelas` opsional per orang), `published`. Satu prestasi bisa punya banyak peraih (baris form bisa ditambah/dihapus); kolom `who`/`kelas` lama otomatis dikonversi saat dibaca. Diinput lewat `/admin/prestasi`. Kosong → blok coming soon.
+- **Fasilitas** masih data statis (21 item) di `components/sections/Facilities.tsx` dengan `src="/placeholder-sekolah.svg"` — perlu diganti foto asli sebelum publikasi.
 - Label `tag` sengaja tidak ditampilkan di kartu berita (homepage, arsip, berita terkait); tag tetap ada di halaman detail, breadcrumb, dan form admin.
 
 ## Rendering, caching & SEO
@@ -171,12 +178,13 @@ Salin dari `.env.example`. Set scope **Production, Preview, dan Development** di
 
 ### Composite index Firestore (wajib)
 
-`listBerita()` dan `listGaleri()` menggabungkan `where("published")` + `orderBy`, jadi butuh composite index:
+`listBerita()`, `listGaleri()`, dan `listPrestasi()` menggabungkan `where("published")` + `orderBy`, jadi butuh composite index:
 
 | Koleksi | Field |
 |---|---|
 | `berita` | `published` ASC + `dateISO` DESC |
 | `galeri` | `published` ASC + `order` ASC |
+| `prestasi` | `published` ASC + `year` DESC |
 
 Deploy lewat CLI `npx firebase-tools deploy --only firestore:indexes --project <id>` (definisi di `firestore.indexes.json`) atau buat manual di Console. Sampai index berstatus `Ready`, query jatuh ke jalur cadangan: ambil tanpa `orderBy` (maks 500 dokumen) lalu urutkan di memori — itu pengaman, bukan pengganti index.
 

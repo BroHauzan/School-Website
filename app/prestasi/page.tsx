@@ -6,7 +6,7 @@ import { Achievements } from "@/components/sections/Achievements";
 
 export const metadata: Metadata = {
   title: "Prestasi — SMAN 1 Lumajang",
-  description: "Catatan prestasi siswa SMAN 1 Lumajang.",
+  description: "Daftar prestasi siswa SMAN 1 Lumajang — dikelola dan diverifikasi pihak sekolah.",
 };
 
 export default function PrestasiPage() {
@@ -23,7 +23,7 @@ export default function PrestasiPage() {
             Pencapaian <i className="text-cream/70">Nyata</i>
           </>
         }
-        description="Bukti kuat tanpa gembar-gembor — setiap prestasi tercatat dengan detail."
+        description="Kumpulan prestasi siswa SMAN 1 Lumajang — dari tingkat kabupaten hingga nasional, dikelola dan diverifikasi pihak sekolah."
       />
       <main id="konten-utama">
         <Achievements />

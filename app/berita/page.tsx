@@ -5,6 +5,7 @@ import { PageHero } from "@/components/ui/PageHero";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionDivider } from "@/components/ui/SectionDivider";
 import { listBerita } from "@/lib/berita-server";
+import { ID_MONTHS } from "@/lib/berita-schema";
 import Link from "next/link";
 
 export const revalidate = 300;
@@ -16,11 +17,32 @@ export const metadata: Metadata = {
   alternates: { canonical: "/berita" },
 };
 
-export default async function BeritaPage() {
-  const docs = await listBerita();
+export default async function BeritaPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ bulan?: string }>;
+}) {
+  const sp = await searchParams;
+  const all = await listBerita();
+  // Validasi format YYYY-MM; nilai lain → anggap tidak ada filter (tampil semua).
+  const bulan = /^\d{4}-(0[1-9]|1[0-2])$/.test(sp.bulan ?? "") ? sp.bulan! : null;
+  const docs = bulan ? all.filter((b) => b.dateISO.startsWith(bulan)) : all;
+
+  // Bulan unik dari seluruh berita, terbaru duluan — sumber chip filter.
+  const months = Array.from(new Set(all.map((b) => b.dateISO.slice(0, 7))))
+    .sort()
+    .reverse();
+  const monthLabel = (ym: string) => {
+    const [y, m] = ym.split("-");
+    return `${ID_MONTHS[Number(m) - 1]} ${y}`;
+  };
+
   const [sorotan, ...lainnya] = docs;
 
   if (!sorotan) {
+    // Dua kasus: (1) belum ada berita sama sekali, (2) filter bulan aktif
+    // tapi bulan itu tidak memiliki berita.
+    const filteredEmpty = Boolean(bulan) && all.length > 0;
     return (
       <>
         <SiteHeader solidOnTop />
@@ -30,35 +52,63 @@ export default async function BeritaPage() {
             { href: "/berita", label: "Berita" },
           ]}
           title="Kabar Terkini"
-          description="Belum ada berita yang tersedia saat ini."
+          description={filteredEmpty
+            ? `Tidak ada berita pada ${bulan ? monthLabel(bulan) : ""}.`
+            : "Belum ada berita yang tersedia saat ini."}
         />
         <main id="konten-utama" className="bg-cream">
           <section className="mx-auto max-w-6xl px-6 py-24 lg:py-32">
+            {filteredEmpty ? (
+              <div className="mb-10 flex flex-wrap items-center justify-center gap-2" role="group" aria-label="Filter berita per bulan">
+                <Link
+                  href="/berita"
+                  className="rounded-full bg-navy px-4 py-1.5 text-xs font-semibold text-cream"
+                >
+                  &larr; Lihat semua berita
+                </Link>
+              </div>
+            ) : null}
             <Reveal>
               <div className="mx-auto max-w-xl rounded-lg border border-navy/10 bg-paper px-8 py-14 text-center shadow-[0_24px_60px_-40px_rgba(9,18,43,0.35)]">
                 <span className="inline-flex size-14 items-center justify-center rounded-full bg-navy/5 font-display text-2xl italic text-navy-muted">
                   &hellip;
                 </span>
                 <h2 className="mt-6 font-display text-2xl tracking-[-0.01em] text-ink lg:text-3xl">
-                  Belum ada <i className="text-navy-muted">berita</i>
+                  {filteredEmpty ? (
+                    <>Tidak ada berita di <i className="text-navy-muted">bulan ini</i></>
+                  ) : (
+                    <>Belum ada <i className="text-navy-muted">berita</i></>
+                  )}
                 </h2>
                 <p className="mt-4 text-base leading-relaxed text-muted">
-                  Kabar terbaru dari lingkungan SMA Negeri 1 Lumajang akan tampil di sini
-                  setelah dipublikasikan oleh humas sekolah.
+                  {filteredEmpty
+                    ? "Coba pilih bulan lain atau lihat seluruh berita."
+                    : "Kabar terbaru dari lingkungan SMA Negeri 1 Lumajang akan tampil di sini setelah dipublikasikan oleh humas sekolah."}
                 </p>
                 <div className="mt-9 flex flex-wrap justify-center gap-4">
-                  <Link
-                    href="/"
-                    className="rounded-full bg-navy px-7 py-3 text-sm font-semibold text-cream transition-colors hover:bg-navy-light"
-                  >
-                    Kembali ke Beranda
-                  </Link>
-                  <Link
-                    href="/ppdb"
-                    className="rounded-full border border-navy/25 px-7 py-3 text-sm font-semibold text-navy transition-colors hover:border-navy/60"
-                  >
-                    Info PPDB
-                  </Link>
+                  {filteredEmpty ? (
+                    <Link
+                      href="/berita"
+                      className="rounded-full bg-navy px-7 py-3 text-sm font-semibold text-cream transition-colors hover:bg-navy-light"
+                    >
+                      Lihat semua berita
+                    </Link>
+                  ) : (
+                    <>
+                      <Link
+                        href="/"
+                        className="rounded-full bg-navy px-7 py-3 text-sm font-semibold text-cream transition-colors hover:bg-navy-light"
+                      >
+                        Kembali ke Beranda
+                      </Link>
+                      <Link
+                        href="/ppdb"
+                        className="rounded-full border border-navy/25 px-7 py-3 text-sm font-semibold text-navy transition-colors hover:border-navy/60"
+                      >
+                        Info PPDB
+                      </Link>
+                    </>
+                  )}
                 </div>
               </div>
             </Reveal>
@@ -86,6 +136,36 @@ export default async function BeritaPage() {
       />
       <main id="konten-utama" className="bg-cream">
         <section className="mx-auto max-w-6xl px-6 py-20 lg:py-28">
+          {/* Filter bulan — hanya muncul bila ada berita untuk difilter */}
+          {all.length > 0 ? (
+            <div className="mb-10 flex flex-wrap items-center gap-2" role="group" aria-label="Filter berita per bulan">
+              <Link
+                href="/berita"
+                aria-current={bulan === null ? "page" : undefined}
+                className={
+                  bulan === null
+                    ? "rounded-full bg-navy px-4 py-1.5 text-xs font-semibold text-cream"
+                    : "rounded-full border border-navy/25 px-4 py-1.5 text-xs font-medium text-navy transition-colors hover:bg-navy/5"
+                }
+              >
+                Semua
+              </Link>
+              {months.map((ym) => (
+                <Link
+                  key={ym}
+                  href={`/berita?bulan=${ym}`}
+                  aria-current={bulan === ym ? "page" : undefined}
+                  className={
+                    bulan === ym
+                      ? "rounded-full bg-navy px-4 py-1.5 text-xs font-semibold text-cream"
+                      : "rounded-full border border-navy/25 px-4 py-1.5 text-xs font-medium text-navy transition-colors hover:bg-navy/5"
+                  }
+                >
+                  {monthLabel(ym)}
+                </Link>
+              ))}
+            </div>
+          ) : null}
           <Reveal>
             <Link
               href={`/berita/${sorotan.slug}`}

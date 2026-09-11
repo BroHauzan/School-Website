@@ -3,7 +3,7 @@ import Link from "next/link";
 import { verifyAdminSession } from "@/lib/auth-server";
 import { adminConfigured } from "@/lib/firebase-admin";
 import { missingEnvReport } from "@/lib/env-server";
-import { LogoutButton } from "@/components/admin/LogoutButton";
+import { PanelNav } from "@/components/admin/PanelNav";
 
 // Guard server-side: verifikasi session cookie kriptografis.
 // proxy.ts hanya cek keberadaan cookie; di sinilah akses benar-benar ditolak.
@@ -31,33 +31,8 @@ export default async function PanelLayout({ children }: { children: React.ReactN
               <span className="block font-display text-lg leading-tight">Panel Admin</span>
             </span>
           </Link>
-          <nav className="flex items-center gap-2 text-sm">
-            <Link
-              href="/admin"
-              className="rounded-full px-4 py-2 text-cream/80 transition-colors hover:bg-cream/10 hover:text-cream"
-            >
-              Berita
-            </Link>
-            <Link
-              href="/admin/galeri"
-              className="rounded-full px-4 py-2 text-cream/80 transition-colors hover:bg-cream/10 hover:text-cream"
-            >
-              Galeri
-            </Link>
-            <Link
-              href="/admin/berita/baru"
-              className="rounded-full bg-cream px-4 py-2 font-medium text-navy transition-colors hover:bg-white"
-            >
-              + Tulis berita
-            </Link>
-            <Link
-              href="/berita"
-              target="_blank"
-              className="hidden rounded-full border border-cream/25 px-4 py-2 text-cream/80 transition-colors hover:border-cream/60 hover:text-cream sm:block"
-            >
-              Lihat situs
-            </Link>
-            <LogoutButton />
+          <nav className="flex items-center gap-2 text-sm" aria-label="Menu panel admin">
+            <PanelNav />
           </nav>
         </div>
       </header>
