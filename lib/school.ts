@@ -217,8 +217,6 @@ function toIsoDay(date: Date): IsoDay {
 }
 
 /** true bila minimal satu fase PPDB sudah punya tanggal terverifikasi. */
-
-/** true bila minimal satu fase PPDB sudah punya tanggal terverifikasi. */
 export const PPDB_HAS_DATES: boolean = PPDB_PHASES.some(
   (p) => parseIsoDay(p.start) !== null
 );

@@ -103,7 +103,8 @@ public/                  # smasa.webp/.png, hero-school.webp, placeholder-sekola
 proxy.ts                 # Next 16: pengganti middleware.ts, guard /admin/:path*
 next.config.ts           # security headers (CSP, HSTS, …) + images.remotePatterns
 firebase.json            # menunjuk firestore.rules, firestore.indexes.json, storage.rules
-firestore.rules          # baca publik berita+galeri, tulis ditolak
+firestore.rules          # baca publik berita+galeri+prestasi+testimoni, write ditolak
+                         # (semua tulis lewat Admin SDK), sisanya default deny
 firestore.indexes.json   # 2 composite index (berita, galeri)
 storage.rules            # baca publik berita/*, sisanya ditolak
 DESIGN_SYSTEM.md         # token & hierarki visual — WAJIB dibaca sebelum komponen baru

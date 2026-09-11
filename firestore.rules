@@ -9,6 +9,14 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false;
     }
+    match /prestasi/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /testimoni/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
     match /{document=**} {
       allow read, write: if false;
     }

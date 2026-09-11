@@ -9,7 +9,7 @@ import { firebaseClientEnv, isFirebaseConfigured } from "./env";
 let app: FirebaseApp | null = null;
 
 export function getFirebaseApp(): FirebaseApp | null {
-  if (typeof window === "undefined" && !isFirebaseConfigured()) return null;
+  if (typeof window === "undefined") return null;
   if (!isFirebaseConfigured()) return null;
   if (app) return app;
   if (getApps().length > 0) {

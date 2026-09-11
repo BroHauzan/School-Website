@@ -17,6 +17,7 @@ export function LogoutButton() {
         } finally {
           router.push("/admin/login");
           router.refresh();
+          setBusy(false);
         }
       }}
       className="rounded-full border border-cream/25 px-4 py-2 text-cream/80 transition-colors hover:border-cream/60 hover:text-cream disabled:opacity-50"

@@ -3,17 +3,19 @@
 import { useRef, useState } from "react";
 import { inputCls } from "./Field";
 
+export interface ImageUploadFieldProps {
+  value: string;
+  onChange: (url: string) => void;
+  uploadUrl?: string;
+  previewAlt?: string;
+}
+
 export function ImageUploadField({
   value,
   onChange,
   uploadUrl = "/api/berita/upload",
   previewAlt = "Pratinjau gambar header",
-}: {
-  value: string;
-  onChange: (url: string) => void;
-  uploadUrl?: string;
-  previewAlt?: string;
-}) {
+}: ImageUploadFieldProps) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);

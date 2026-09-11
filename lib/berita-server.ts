@@ -51,6 +51,7 @@ export async function listBerita(opts?: { includeDraft?: boolean }): Promise<Ber
     }
     // Composite index belum dibuat di project ini: ambil tanpa orderBy lalu
     // urutkan di memori. Deploy firestore.indexes.json supaya jalur ini tidak terpakai.
+    console.warn("[berita] composite index missing — using slow in-memory fallback. Deploy firestore.indexes.json.");
     try {
       let q: Query = db.collection(BERITA_COLLECTION);
       if (publishedOnly) q = q.where("published", "==", true);
@@ -85,9 +86,14 @@ export async function getBeritaBySlug(slug: string): Promise<BeritaDoc | null> {
 
 export async function getBeritaById(id: string): Promise<BeritaDoc | null> {
   if (!adminConfigured()) return null;
-  const doc = await getAdminDb().collection(BERITA_COLLECTION).doc(id).get();
-  if (!doc.exists) return null;
-  return snapToDoc(doc);
+  try {
+    const doc = await getAdminDb().collection(BERITA_COLLECTION).doc(id).get();
+    if (!doc.exists) return null;
+    return snapToDoc(doc);
+  } catch (err) {
+    console.error("[berita] getBeritaById gagal:", err);
+    return null;
+  }
 }
 
 export async function getBeritaLainDb(slug: string, count = 3): Promise<BeritaDoc[]> {

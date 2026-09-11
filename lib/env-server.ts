@@ -42,16 +42,20 @@ export function adminAllowlist(): string[] {
     .filter(Boolean);
 }
 
+const REQUIRED_ENVS = [
+  "NEXT_PUBLIC_FIREBASE_API_KEY",
+  "NEXT_PUBLIC_FIREBASE_PROJECT_ID",
+  "NEXT_PUBLIC_FIREBASE_APP_ID",
+  "FIREBASE_ADMIN_CLIENT_EMAIL",
+  "FIREBASE_ADMIN_PRIVATE_KEY",
+] as const;
+
 /** Daftar env wajib yang masih kosong (untuk pesan setup di panel admin). */
 export function missingEnvReport(): string[] {
-  const missing: string[] = [];
-  if (!process.env.NEXT_PUBLIC_FIREBASE_API_KEY) missing.push("NEXT_PUBLIC_FIREBASE_API_KEY");
-  if (!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) missing.push("NEXT_PUBLIC_FIREBASE_PROJECT_ID");
-  if (!process.env.NEXT_PUBLIC_FIREBASE_APP_ID) missing.push("NEXT_PUBLIC_FIREBASE_APP_ID");
-  if (!process.env.FIREBASE_ADMIN_CLIENT_EMAIL) missing.push("FIREBASE_ADMIN_CLIENT_EMAIL");
-  if (!process.env.FIREBASE_ADMIN_PRIVATE_KEY) missing.push("FIREBASE_ADMIN_PRIVATE_KEY");
-  if (adminAllowlist().length === 0) missing.push("ADMIN_EMAILS");
-  return missing;
+  return [
+    ...REQUIRED_ENVS.filter((k) => !process.env[k]),
+    ...(adminAllowlist().length === 0 ? ["ADMIN_EMAILS"] : []),
+  ];
 }
 
 export const cloudinaryEnv = {

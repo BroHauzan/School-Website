@@ -46,6 +46,7 @@ next-env.d.ts
 
 # local claude tooling
 .claude-flow/
+.claude/
 # firebase debug logs
 firebase-debug.log*
 .firebase/

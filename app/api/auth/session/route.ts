@@ -5,6 +5,7 @@ import {
   SESSION_COOKIE,
   assertSameOrigin,
 } from "@/lib/auth-server";
+import { errMsg } from "@/lib/api-error";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -29,9 +30,8 @@ export async function POST(request: Request) {
     });
     return res;
   } catch (e) {
-    const msg = e instanceof Error ? e.message : "Login gagal.";
-    const status = (e as { status?: number }).status ?? 401;
-    return NextResponse.json({ error: msg }, { status });
+    const { message, status } = errMsg(e, "Login gagal.");
+    return NextResponse.json({ error: message }, { status });
   }
 }
 
