@@ -1,17 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useState, useSyncExternalStore } from "react";
 import { useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import type { TestimonialItem } from "@/components/sections/Testimonials";
 
-const AUTOPLAY_MS = 5000;
 const SWIPE_MIN_PX = 40;
 
 /**
- * Kartu per-view responsif via matchMedia — pakai useSyncExternalStore supaya
- * tidak ada setState di dalam effect (aturan react-hooks/set-state-in-effect).
- * 1 kartu (hp), 2 (>=sm), 3 (>=lg) — sesuai breakpoint grid sebelumnya.
+ * Kartu per-view responsif via matchMedia — useSyncExternalStore supaya
+ * tidak ada setState di dalam effect. 1 kartu (hp), 2 (>=sm), 3 (>=lg).
  */
 function perViewSubscribe(onChange: () => void): () => void {
   const mq2 = window.matchMedia("(min-width: 640px)");
@@ -52,39 +50,33 @@ function Card({ t }: { t: TestimonialItem }) {
 }
 
 /**
- * Carousel testimoni: geser otomatis ke samping tiap 5 detik.
- * Pause saat hover/fokus, swipe sentuh, tombol panah, keyboard ArrowLeft/Right,
- * prefers-reduced-motion -> tanpa autoplay & transisi.
+ * Carousel testimoni manual: TANPA autoplay — kartu hanya bergeser saat
+ * tombol panah / dot / swipe sentuh / keyboard ArrowLeft-Right dipencet.
+ * prefers-reduced-motion -> transisi instan.
  */
 export function TestimonialCarousel({ items }: { items: TestimonialItem[] }) {
   const reduce = useReducedMotion();
   const count = items.length;
   const perView = usePerView();
   const [active, setActive] = useState(0);
-  const [paused, setPaused] = useState(false);
-  const touchX = useRef<number | null>(null);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
 
-  // Jumlah langkah = kartu yang tersisa setelah perView pertama.
-  const steps = Math.max(count - perView, 0);
-  // Clamp derived (bukan setState-in-effect) saat viewport membesar.
-  const pos = active > steps ? steps : active;
+  // Langkah geser: per satu kartu, maksimal sampai kartu terakhir terlihat.
+  const maxPos = Math.max(count - perView, 0);
+  const pos = active > maxPos ? maxPos : active;
 
   const next = useCallback(
-    () => setActive((p) => (steps === 0 ? 0 : ((p > steps ? steps : p) + 1) % (steps + 1))),
-    [steps],
+    () => setActive((p) => Math.min((p > maxPos ? maxPos : p) + 1, maxPos)),
+    [maxPos],
   );
   const prev = useCallback(
-    () => setActive((p) => (steps === 0 ? 0 : ((p > steps ? steps : p) - 1 + steps + 1) % (steps + 1))),
-    [steps],
+    () => setActive((p) => Math.max((p > maxPos ? maxPos : p) - 1, 0)),
+    [maxPos],
   );
 
-  useEffect(() => {
-    if (reduce || paused || steps === 0) return;
-    const id = window.setInterval(next, AUTOPLAY_MS);
-    return () => window.clearInterval(id);
-  }, [reduce, paused, steps, next]);
-
-  const shift = steps === 0 ? 0 : (pos * 100) / perView;
+  const shift = (pos * 100) / perView;
+  const canPrev = pos > 0;
+  const canNext = pos < maxPos;
 
   return (
     <div
@@ -93,20 +85,16 @@ export function TestimonialCarousel({ items }: { items: TestimonialItem[] }) {
       aria-label="Testimoni siswa dan alumni"
       tabIndex={0}
       onKeyDown={(e) => {
-        if (e.key === "ArrowRight") { e.preventDefault(); next(); }
-        if (e.key === "ArrowLeft") { e.preventDefault(); prev(); }
+        if (e.key === "ArrowRight" && canNext) { e.preventDefault(); next(); }
+        if (e.key === "ArrowLeft" && canPrev) { e.preventDefault(); prev(); }
       }}
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      onFocus={() => setPaused(true)}
-      onBlur={() => setPaused(false)}
-      onTouchStart={(e) => { touchX.current = e.touches[0]?.clientX ?? null; }}
+      onTouchStart={(e) => { setTouchStartX(e.touches[0]?.clientX ?? null); }}
       onTouchEnd={(e) => {
-        if (touchX.current === null) return;
-        const dx = (e.changedTouches[0]?.clientX ?? 0) - touchX.current;
-        if (dx <= -SWIPE_MIN_PX) next();
-        else if (dx >= SWIPE_MIN_PX) prev();
-        touchX.current = null;
+        if (touchStartX === null) return;
+        const dx = (e.changedTouches[0]?.clientX ?? 0) - touchStartX;
+        if (dx <= -SWIPE_MIN_PX && canNext) next();
+        else if (dx >= SWIPE_MIN_PX && canPrev) prev();
+        setTouchStartX(null);
       }}
       className="relative outline-none"
     >
@@ -127,18 +115,19 @@ export function TestimonialCarousel({ items }: { items: TestimonialItem[] }) {
         </div>
       </div>
 
-      {steps > 0 ? (
+      {maxPos > 0 ? (
         <div className="mt-8 flex items-center justify-center gap-4">
           <button
             type="button"
             onClick={prev}
+            disabled={!canPrev}
             aria-label="Testimoni sebelumnya"
-            className="flex size-10 items-center justify-center rounded-full border border-navy/20 text-navy transition-colors hover:border-navy/50 hover:bg-navy/5"
+            className="flex size-10 items-center justify-center rounded-full border border-navy/20 text-navy transition-colors hover:border-navy/50 hover:bg-navy/5 disabled:cursor-not-allowed disabled:opacity-30"
           >
             &larr;
           </button>
-          <div className="flex items-center gap-2" aria-label="Halaman testimoni">
-            {Array.from({ length: steps + 1 }, (_, i) => (
+          <div className="flex items-center gap-2" aria-label="Posisi testimoni">
+            {Array.from({ length: maxPos + 1 }, (_, i) => (
               <button
                 key={i}
                 type="button"
@@ -155,8 +144,9 @@ export function TestimonialCarousel({ items }: { items: TestimonialItem[] }) {
           <button
             type="button"
             onClick={next}
+            disabled={!canNext}
             aria-label="Testimoni berikutnya"
-            className="flex size-10 items-center justify-center rounded-full border border-navy/20 text-navy transition-colors hover:border-navy/50 hover:bg-navy/5"
+            className="flex size-10 items-center justify-center rounded-full border border-navy/20 text-navy transition-colors hover:border-navy/50 hover:bg-navy/5 disabled:cursor-not-allowed disabled:opacity-30"
           >
             &rarr;
           </button>
