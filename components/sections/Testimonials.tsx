@@ -1,12 +1,16 @@
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { TestimonialCarousel } from "@/components/ui/TestimonialCarousel";
+import { listTestimoni } from "@/lib/testimoni-server";
+
+export type TestimonialItem = { quote: string; name: string; role: string };
 
 /**
- * // PLACEHOLDER: ganti dengan testimoni asli siswa / alumni / guru
- * beserta nama lengkap dan angkatan. Saat ini berupa kerangka kosong
- * yang siap diisi data resmi.
+ * Fallback offline / Firestore kosong — data resmi yang sudah ada di repo
+ * (testimoni siswa angkatan 64). Begitu admin menayangkan testimoni di
+ * Firestore, daftar ini tidak terpakai.
  */
-const TESTIMONIALS = [
+const FALLBACK: TestimonialItem[] = [
   {
     quote: "Temui aku di rasa sesalmu.",
     name: "Arya Eka Maulidhani",
@@ -19,14 +23,18 @@ const TESTIMONIALS = [
   },
   {
     quote: "Mencoba berpeluang sukses dan gagal daripada tidak mencoba sama sekali.",
-    name: "Novemas Heka Alfarizi ",
+    name: "Novemas Heka Alfarizi",
     role: "Siswa, angkatan 64",
   },
 ];
 
-export function Testimonials() {
+export async function Testimonials() {
+  const docs = await listTestimoni();
+  const items: TestimonialItem[] =
+    docs.length > 0 ? docs.map((t) => ({ quote: t.quote, name: t.name, role: t.role })) : FALLBACK;
+
   return (
-    <section id="testimoni" className="bg-cream py-28 lg:py-40">
+    <section id="testimoni" className="overflow-x-clip bg-cream py-28 lg:py-40">
       <div className="mx-auto max-w-6xl px-6">
         <SectionHeading
           eyebrow="Testimoni"
@@ -38,26 +46,11 @@ export function Testimonials() {
           description="Suara siswa, alumni, dan guru — apa adanya, tanpa skrip promosi."
         />
 
-        <div className="mt-16 grid gap-5 md:grid-cols-3">
-          {TESTIMONIALS.map(({ quote, name, role }, i) => (
-            <Reveal key={name} delay={i * 0.1}>
-              <figure className="flex h-full flex-col justify-between rounded-lg border border-navy/10 bg-paper p-8">
-                <div>
-                  <span aria-hidden="true" className="block font-display text-5xl italic leading-none text-navy/15">
-                    &ldquo;
-                  </span>
-                  <blockquote className="mt-2 text-base leading-relaxed text-ink/85">
-                    {quote}
-                  </blockquote>
-                </div>
-                <figcaption className="mt-8 border-t border-navy/10 pt-5">
-                  <p className="font-medium text-ink">{name}</p>
-                  <p className="mt-1 text-sm text-muted">{role}</p>
-                </figcaption>
-              </figure>
-            </Reveal>
-          ))}
-        </div>
+        <Reveal delay={0.1}>
+          <div className="mt-16 -mx-2.5">
+            <TestimonialCarousel items={items} />
+          </div>
+        </Reveal>
       </div>
     </section>
   );

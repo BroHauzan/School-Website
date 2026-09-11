@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Field, inputCls } from "./Field";
-import { PRESTASI_SCOPES, type PrestasiPeraih, type PrestasiScope } from "@/lib/prestasi-schema";
+import { PRESTASI_SCOPES, ddmmyyToISO, isoToDDMMYY, type PrestasiPeraih, type PrestasiScope } from "@/lib/prestasi-schema";
 
 export type PrestasiFormValue = {
   year: string; scope: PrestasiScope; title: string; dateISO: string;
@@ -16,6 +16,8 @@ export function PrestasiForm({ mode, id, initial }: { mode: "create" | "edit"; i
   const [v, setV] = useState(initial);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Input tanggal tampil sebagai dd/mm/yy; disimpan/dikirim sebagai ISO.
+  const [dateText, setDateText] = useState(initial.dateISO ? isoToDDMMYY(initial.dateISO) : "");
   const set = <K extends keyof PrestasiFormValue>(k: K, val: PrestasiFormValue[K]) =>
     setV((p) => ({ ...p, [k]: val }));
   const setPeraih = (i: number, k: keyof PrestasiPeraih, val: string) =>
@@ -33,11 +35,17 @@ export function PrestasiForm({ mode, id, initial }: { mode: "create" | "edit"; i
       .map((r) => ({ nama: r.nama.trim(), kelas: r.kelas.trim() }))
       .filter((r) => r.nama.length > 0);
     if (peraih.length === 0) { setError("Isi minimal 1 nama peraih."); return; }
+    let dateISO = "";
+    if (dateText.trim()) {
+      const parsed = ddmmyyToISO(dateText);
+      if (!parsed) { setError("Tanggal harus format dd/mm/yy, mis. 11/09/26."); return; }
+      dateISO = parsed;
+    }
     setBusy(true);
     try {
       const payload = {
         year: v.year.trim(), scope: v.scope, title: v.title.trim(),
-        dateISO: v.dateISO, peraih, published: v.published,
+        dateISO, peraih, published: v.published,
       };
       const url = mode === "create" ? "/api/prestasi" : `/api/prestasi/${id}`;
       const res = await fetch(url, {
@@ -67,9 +75,9 @@ export function PrestasiForm({ mode, id, initial }: { mode: "create" | "edit"; i
             ))}
           </select>
         </Field>
-        <Field label="Tanggal diraih" htmlFor="p-date" hint="Kosongkan bila hanya tahu tahunnya.">
-          <input id="p-date" type="date" value={v.dateISO}
-            onChange={(e) => set("dateISO", e.target.value)} className={inputCls} />
+        <Field label="Tanggal diraih" htmlFor="p-date" hint="Format dd/mm/yy, mis. 11/09/26. Kosongkan bila hanya tahu tahunnya.">
+          <input id="p-date" type="text" inputMode="numeric" placeholder="11/09/26"
+            value={dateText} onChange={(e) => setDateText(e.target.value)} className={inputCls} />
         </Field>
       </div>
       <Field label="Nama prestasi" htmlFor="p-title" hint="8–160 karakter. Mis. “Juara 3 — Lomba Karya Tulis Ilmiah”.">

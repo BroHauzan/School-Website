@@ -21,7 +21,7 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: "SMAN 1 Lumajang — Kebijaksanaan untuk Masa Depan",
+  title: "SMAN 1 Lumajang",
   description:
     "Situs resmi SMAN 1 Lumajang. Sekolah menengah atas unggulan di Lumajang, Jawa Timur, dengan identitas burung hantu sebagai simbol kebijaksanaan, ketajaman visi, dan semangat belajar tanpa batas.",
   alternates: { canonical: undefined },
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     type: "website",
     url: SITE_URL,
     siteName: SCHOOL.name,
-    title: "SMAN 1 Lumajang — Kebijaksanaan untuk Masa Depan",
+    title: "SMAN 1 Lumajang",
     description:
       "NPSN 20520821 · Berdiri 1960 · Jl. Jend. A. Yani No. 7, Lumajang, Jawa Timur.",
     locale: "id_ID",

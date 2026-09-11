@@ -68,11 +68,15 @@ Akademik **bukan** rute terpisah — dirender sebagai section `Academic` di `/`.
 | `/admin/prestasi` | Dashboard + tabel prestasi |
 | `/admin/prestasi/baru` | Tambah prestasi (tahun, tingkat, nama, peraih, kelas) |
 | `/admin/prestasi/[id]/ubah` | Ubah prestasi |
+| `/admin/testimoni` | Dashboard + tabel testimoni |
+| `/admin/testimoni/baru` | Tambah testimoni (kutipan, nama, peran, urutan) |
+| `/admin/testimoni/[id]/ubah` | Ubah testimoni |
 | `/api/berita` | `GET` daftar, `POST` buat |
 | `/api/berita/[id]` | `PATCH` ubah, `DELETE` hapus |
 | `/api/berita/upload` | `POST` gambar → Cloudinary folder `berita` |
 | `/api/galeri`, `/api/galeri/[id]`, `/api/galeri/upload` | Sama seperti berita, folder `galeri` |
 | `/api/prestasi`, `/api/prestasi/[id]` | CRUD prestasi (tanpa upload — teks saja) |
+| `/api/testimoni`, `/api/testimoni/[id]` | CRUD testimoni (teks saja, revalidate `/`) |
 | `/api/auth/session` | `POST` mint session cookie, `DELETE` logout + revokasi token |
 | `/api/health` | Probe tanpa dependency — pemisah error platform vs error library |
 
@@ -84,7 +88,7 @@ Semua halaman admin dan seluruh API route `force-dynamic`. Setiap tulis data mem
 app/                     # halaman (App Router) + layout, error, not-found
 app/berita/[slug]/       # detail berita, generateStaticParams
 app/admin/login/         # halaman login (di luar grup panel)
-app/admin/(panel)/       # guard server + shell panel: berita, galeri & prestasi CRUD + loading skeleton
+app/admin/(panel)/       # guard server + shell panel: berita, galeri, prestasi & testimoni CRUD + loading skeleton
 app/api/                 # route handler: berita, galeri, auth/session, health
 app/sitemap.ts           # 16 rute statis + entri berita dari Firestore
 app/robots.ts            # allow /, disallow /admin dan /api
@@ -92,8 +96,8 @@ components/sections/     # 19 section homepage & halaman (Hero, Berita, Gallery,
 components/ui/           # SiteHeader, Footer, PageHero, SectionHeading, Reveal,
                          # SectionDivider, BackToTop, ScrollToHash, OwlMotif
 components/admin/        # BeritaForm/Table, GaleriForm/Table, PrestasiForm/Table,
-                         # PanelNav (active state + feedback klik), ImageUploadField,
-                         # LoginForm, LogoutButton, ConfirmDialog, Field
+                         # TestimoniForm/Table, PanelNav (active state + feedback klik),
+                         # ImageUploadField, LoginForm, LogoutButton, ConfirmDialog, Field
 lib/                     # lihat tabel modul di bawah
 public/                  # smasa.webp/.png, hero-school.webp, placeholder-sekolah.svg, owl-*.svg
 proxy.ts                 # Next 16: pengganti middleware.ts, guard /admin/:path*
@@ -130,6 +134,7 @@ FIREBASE_SETUP.md        # setup console: service account, Auth, rules, index
 - **Galeri** dari koleksi `galeri`: `caption`, `src`, `wide`, `order`, `published`. Urut naik lewat `order`. Kosong → 7 kartu placeholder agar layout masonry tidak rusak (deskripsi section otomatis berubah jadi "masih placeholder").
 - **Homepage** menampilkan maksimal 5 berita terbaru (`HOMEPAGE_LIMIT` di `components/sections/Berita.tsx`); halaman `/berita` menampilkan sampai 100 dan punya filter chip per bulan (`/berita?bulan=YYYY-MM`, label Indonesia, bulan diambil dari berita yang ada).
 - **Prestasi** dari koleksi Firestore `prestasi`: `year`, `dateISO` (opsional, "YYYY-MM-DD", default hari ini saat input baru) + `dateLabel` hasil format, `scope` (Kabupaten/Provinsi/Nasional), `title`, `peraih[]` (`nama` + `kelas` opsional per orang), `published`. Satu prestasi bisa punya banyak peraih (baris form bisa ditambah/dihapus); kolom `who`/`kelas` lama otomatis dikonversi saat dibaca. Diinput lewat `/admin/prestasi`. Kosong → blok coming soon.
+- **Testimoni** dari koleksi Firestore `testimoni`: `quote` (10-500 karakter), `name`, `role`, `order` (urutan carousel, kecil = depan), `published`. Diinput lewat `/admin/testimoni`. Section homepage menampilkan carousel otomatis (geser tiap 5 detik, pause saat hover/fokus, swipe, dukung keyboard & reduced-motion); bila koleksi kosong → fallback 3 testimoni statis bawaan.
 - **Fasilitas** masih data statis (21 item) di `components/sections/Facilities.tsx` dengan `src="/placeholder-sekolah.svg"` — perlu diganti foto asli sebelum publikasi.
 - Label `tag` sengaja tidak ditampilkan di kartu berita (homepage, arsip, berita terkait); tag tetap ada di halaman detail, breadcrumb, dan form admin.
 
@@ -178,13 +183,14 @@ Salin dari `.env.example`. Set scope **Production, Preview, dan Development** di
 
 ### Composite index Firestore (wajib)
 
-`listBerita()`, `listGaleri()`, dan `listPrestasi()` menggabungkan `where("published")` + `orderBy`, jadi butuh composite index:
+`listBerita()`, `listGaleri()`, `listPrestasi()`, dan `listTestimoni()` menggabungkan `where("published")` + `orderBy`, jadi butuh composite index:
 
 | Koleksi | Field |
 |---|---|
 | `berita` | `published` ASC + `dateISO` DESC |
 | `galeri` | `published` ASC + `order` ASC |
 | `prestasi` | `published` ASC + `year` DESC |
+| `testimoni` | `published` ASC + `order` ASC |
 
 Deploy lewat CLI `npx firebase-tools deploy --only firestore:indexes --project <id>` (definisi di `firestore.indexes.json`) atau buat manual di Console. Sampai index berstatus `Ready`, query jatuh ke jalur cadangan: ambil tanpa `orderBy` (maks 500 dokumen) lalu urutkan di memori — itu pengaman, bukan pengganti index.
 

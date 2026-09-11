@@ -9,6 +9,7 @@ const MENUS = [
   { href: "/admin", label: "Berita", active: (p: string) => p === "/admin" || p.startsWith("/admin/berita") },
   { href: "/admin/galeri", label: "Galeri", active: (p: string) => p.startsWith("/admin/galeri") },
   { href: "/admin/prestasi", label: "Prestasi", active: (p: string) => p.startsWith("/admin/prestasi") },
+  { href: "/admin/testimoni", label: "Testimoni", active: (p: string) => p.startsWith("/admin/testimoni") },
 ];
 
 /**

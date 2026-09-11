@@ -3,6 +3,7 @@ import { type DocumentSnapshot, type Query } from "firebase-admin/firestore";
 import { getAdminDb, adminConfigured } from "./firebase-admin";
 import {
   normalizePrestasiInput,
+  sortPrestasiTerbaru,
   validatePrestasi,
   type PrestasiDoc,
 } from "./prestasi-schema";
@@ -37,7 +38,9 @@ export async function listPrestasi(
     let q: Query = db.collection(PRESTASI_COLLECTION).orderBy("year", "desc");
     if (publishedOnly) q = q.where("published", "==", true);
     const snap = await q.limit(200).get();
-    return snap.docs.map(snapToDoc);
+    // orderBy year saja -> dalam satu tahun urutan Firestore acak; sortir
+    // ulang by dateISO supaya terbaru selalu paling atas.
+    return sortPrestasiTerbaru(snap.docs.map(snapToDoc));
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     if (!/FAILED_PRECONDITION|requires an index/i.test(msg)) {
@@ -50,10 +53,7 @@ export async function listPrestasi(
       let q2: Query = db.collection(PRESTASI_COLLECTION);
       if (publishedOnly) q2 = q2.where("published", "==", true);
       const snap2 = await q2.limit(500).get();
-      return snap2.docs
-        .map(snapToDoc)
-        .sort((a, b) => b.year.localeCompare(a.year))
-        .slice(0, 200);
+      return sortPrestasiTerbaru(snap2.docs.map(snapToDoc)).slice(0, 200);
     } catch (err2) {
       console.error("[prestasi] listPrestasi gagal:", err2);
       return [];

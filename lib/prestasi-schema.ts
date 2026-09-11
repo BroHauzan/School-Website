@@ -33,6 +33,28 @@ export function isPrestasiScope(v: unknown): v is PrestasiScope {
   return typeof v === "string" && (PRESTASI_SCOPES as string[]).includes(v);
 }
 
+/** "2026-09-11" -> "11/09/26" untuk tampilan form admin. Kosong -> "". */
+export function isoToDDMMYY(iso: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso.trim());
+  return m ? `${m[3]}/${m[2]}/${m[1].slice(2)}` : "";
+}
+
+/**
+ * "11/09/26" atau "11/09/2026" -> "2026-09-11" (pemisah / - . diterima,
+ * 2 digit tahun dianggap 20xx). Tanggal tidak nyata (mis. 31/02) -> null.
+ */
+export function ddmmyyToISO(s: string): string | null {
+  const m = /^(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{2}|\d{4})$/.exec(s.trim());
+  if (!m) return null;
+  const d = Number(m[1]);
+  const mo = Number(m[2]);
+  const y = m[3].length === 2 ? Number(m[3]) + 2000 : Number(m[3]);
+  const dt = new Date(y, mo - 1, d);
+  if (dt.getFullYear() !== y || dt.getMonth() !== mo - 1 || dt.getDate() !== d) return null;
+  const p2 = (n: number) => String(n).padStart(2, "0");
+  return `${y}-${p2(mo)}-${p2(d)}`;
+}
+
 /** Konversi kolom lama `who` + `kelas` (satu string) ke bentuk peraih array. */
 export function legacyToPeraih(who: string, kelas: string): PrestasiPeraih[] {
   const nama = who.trim();
@@ -51,6 +73,25 @@ export function toPeraihList(raw: unknown): PrestasiPeraih[] {
       return { nama: String(o.nama ?? "").trim(), kelas: String(o.kelas ?? "").trim() };
     })
     .filter((p) => p.nama.length > 0);
+}
+
+/**
+ * Kunci urut "terbaru dulu": pakai dateISO bila ada; dokumen tanpa tanggal
+ * dianggap akhir tahunnya sendiri (tetap mengelompok di blok tahun itu).
+ * "YYYY-MM-DD" aman dibandingkan lexicografis.
+ */
+export function prestasiSortKey(p: Pick<PrestasiDoc, "year" | "dateISO">): string {
+  return p.dateISO || `${p.year}-12-31`;
+}
+
+/** Urutkan prestasi terbaru di atas; seri tahun+tanggal sama -> judul A-Z. Mutasi in-place, ok untuk array baru. */
+export function sortPrestasiTerbaru<T extends PrestasiDoc>(list: T[]): T[] {
+  return list.sort((a, b) => {
+    const kb = prestasiSortKey(b);
+    const ka = prestasiSortKey(a);
+    if (ka !== kb) return kb.localeCompare(ka);
+    return a.title.localeCompare(b.title);
+  });
 }
 
 export function validatePrestasi(
