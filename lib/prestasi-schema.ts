@@ -1,13 +1,34 @@
-export type PrestasiScope = "Kabupaten" | "Provinsi" | "Nasional";
+export type PrestasiScope = "Kabupaten" | "Provinsi" | "Nasional" | "Internasional";
 
 import { formatTanggalID, todayISO } from "./berita-schema";
 
-/** Tingkat lomba yang dikenali — dipakai select di form admin + validasi. */
+/**
+ * Tingkat lomba yang dikenali — dipakai select di form admin + validasi.
+ * Urutan array = urutan opsi di dropdown admin.
+ */
 export const PRESTASI_SCOPES: PrestasiScope[] = [
   "Kabupaten",
   "Provinsi",
   "Nasional",
+  "Internasional",
 ];
+
+/**
+ * Urutan kepentingan tingkat lomba — makin besar makin tinggi.
+ * SATU sumber untuk pengurutan berbasis tingkat (mis. daftar juara teratas).
+ * Urutan tampilan dropdown tetap mengikuti `PRESTASI_SCOPES`.
+ */
+export const SCOPE_RANK: Record<PrestasiScope, number> = {
+  Kabupaten: 1,
+  Provinsi: 2,
+  Nasional: 3,
+  Internasional: 4,
+};
+
+/** Bandingkan dua tingkat: negatif = `a` lebih rendah, positif = `a` lebih tinggi. */
+export function compareScope(a: PrestasiScope, b: PrestasiScope): number {
+  return SCOPE_RANK[a] - SCOPE_RANK[b];
+}
 
 /** Satu orang peraih + kelasnya. Kelas opsional (mis. tim lintas kelas). */
 export type PrestasiPeraih = { nama: string; kelas: string };
@@ -104,7 +125,7 @@ export function validatePrestasi(
   if (dateISO && isNaN(new Date(dateISO).getTime()))
     errors.push("Tanggal tidak valid.");
   if (!isPrestasiScope(str("scope")))
-    errors.push("Tingkat harus Kabupaten, Provinsi, atau Nasional.");
+    errors.push("Tingkat harus Kabupaten, Provinsi, Nasional, atau Internasional.");
   if (str("title").length < 8) errors.push("Nama prestasi minimal 8 karakter.");
   if (str("title").length > 160)
     errors.push("Nama prestasi maksimal 160 karakter.");

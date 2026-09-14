@@ -1,5 +1,6 @@
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Reveal } from "@/components/ui/Reveal";
+import { SharePrestasiButton } from "@/components/prestasi/SharePrestasiButton";
 import { listPrestasi } from "@/lib/prestasi-server";
 
 /**
@@ -45,9 +46,10 @@ export async function Achievements() {
           </Reveal>
         ) : (
           <>
-            <div className="mt-12 grid gap-5 sm:grid-cols-3">
+            <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {[
                 { value: String(items.length), label: "Total prestasi tercatat" },
+                { value: String(items.filter((p) => p.scope === "Internasional").length), label: "Tingkat internasional" },
                 { value: String(items.filter((p) => p.scope === "Nasional").length), label: "Tingkat nasional" },
                 { value: String(items.filter((p) => p.scope === "Provinsi").length), label: "Tingkat provinsi" },
               ].map((stat, i) => (
@@ -61,7 +63,7 @@ export async function Achievements() {
             </div>
 
             <div className="mt-16 overflow-x-auto" tabIndex={0} role="region" aria-label="Tabel daftar prestasi">
-              <table className="w-full min-w-[680px] border-collapse text-left">
+              <table className="w-full min-w-[820px] border-collapse text-left">
                 <caption className="sr-only">
                   Daftar prestasi sekolah beserta tahun, tingkat, dan peraih.
                 </caption>
@@ -71,13 +73,18 @@ export async function Achievements() {
                     <th scope="col" className="px-1 py-5 font-medium">Tingkat</th>
                     <th scope="col" className="px-1 py-5 font-medium">Prestasi</th>
                     <th scope="col" className="px-1 py-5 font-medium">Peraih</th>
+                    <th scope="col" className="w-14 px-1 py-5 font-medium">
+                      <span className="sr-only">Bagikan</span>
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {items.map((p) => {
+                    // Tingkat tinggi solid — internasional pakai emas, nasional cream.
+                    const isInternational = p.scope === "Internasional";
                     const isNational = p.scope === "Nasional";
                     return (
-                      <tr key={p.id} className="border-b border-cream/10 transition-colors hover:bg-white/[0.04]">
+                      <tr key={p.id} className="group border-b border-cream/10 transition-colors hover:bg-white/[0.04]">
                         <td className="py-6 pr-4">
                           <p className="font-display text-2xl text-cream/85">{p.year}</p>
                           {p.dateLabel ? (
@@ -89,9 +96,11 @@ export async function Achievements() {
                         <td className="py-6 pr-4">
                           <span
                             className={
-                              isNational
-                                ? "rounded-full bg-cream px-3 py-1 text-xs font-medium text-navy"
-                                : "rounded-full border border-cream/25 px-3 py-1 text-xs text-cream/75"
+                              isInternational
+                                ? "rounded-full bg-[#f5c542] px-3 py-1 text-xs font-medium text-navy"
+                                : isNational
+                                  ? "rounded-full bg-cream px-3 py-1 text-xs font-medium text-navy"
+                                  : "rounded-full border border-cream/25 px-3 py-1 text-xs text-cream/75"
                             }
                           >
                             {p.scope}
@@ -111,6 +120,9 @@ export async function Achievements() {
                               </li>
                             ))}
                           </ul>
+                        </td>
+                        <td className="w-14 py-6 pl-2">
+                          <SharePrestasiButton prestasi={p} dark />
                         </td>
                       </tr>
                     );

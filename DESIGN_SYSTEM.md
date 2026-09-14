@@ -145,11 +145,49 @@ Minimal structure component:
 ## 8. Badge Styles
 
 **Scope badge (Prestasi):**
+- Internasional: `rounded-full bg-[#f5c542] px-3 py-1 text-xs font-medium text-navy`
 - Nasional: `rounded-full bg-cream px-3 py-1 text-xs font-medium text-navy`
 - Provinsi/Kabupaten: `rounded-full border border-cream/25 px-3 py-1 text-xs text-cream/75`
 
 **General badge:**
 `rounded-full bg-navy/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-navy/60`
+
+---
+
+## 8b. Share Card (Prestasi)
+
+Kartu gambar 1080×1350 (4:5) untuk dibagikan ke sosial media — `components/prestasi/`.
+
+- **Ukuran & warna:** `share-card-theme.ts` — `CARD_W`, `CARD_H`, `TIER_STYLE` (badge per tingkat), `CARD_COLORS`.
+- **Aturan wajib:** kartu memakai **style inline literal hex/rgba**, TIDAK boleh utility opacity Tailwind (`text-cream/70`). Tailwind v4 mengompilasinya jadi `color-mix(in oklab, ...)`; html-to-image menyalin computed style ke SVG `<foreignObject>` yang gagal dirender Safari.
+- **Font:** di-load lewat computed style (`next/font` memakai nama internal `__Playfair_Display_xxx`, bukan `"Playfair Display"`), setelah `document.fonts.ready`.
+- **Batas aman:** judul di-clamp 5 baris (ukuran turun bertahap), peraih maks 6 baris / 2 kolom + “+N peraih lainnya”.
+- **Badge warna:** Internasional `#f5c542` (emas), Nasional cream, Provinsi/Kabupaten outline.
+- **Tombol Bagikan (tabel publik):** icon-only ghost, kotak `size-10` (target tap 40px), `opacity-0 group-hover:opacity-100 focus-visible:opacity-100 pointer-coarse:opacity-60` + `transition-opacity duration-150`. `<tr>` wajib punya class `group`. Kolomnya lebar tetap `w-14` di `<th>` dan `<td>` supaya semua tombol sejajar vertikal.
+
+### Layer background kartu (`ShareCardBackground`)
+
+Urutan belakang → depan:
+
+| # | Layer | Teknik |
+|---|---|---|
+| 1 | Base + grain + radial glow (SATU elemen) | `backgroundImage: url(grainTile), radial-gradient(circle 560px at 136px 136px, #2e4474, #0a1428 55%)` + `backgroundRepeat: repeat, no-repeat` |
+| 2 | Lengkung dekoratif kanan atas | SVG data-URI, stroke-only, `stroke-width: 2.5`, `opacity: 0.22` |
+| 3 | Watermark mata owl (kanan bawah, overflow) | SVG data-URI, 5 lingkaran konsentris + garis silang, stroke-only, `opacity: 0.05` |
+| 4 | Vignette tepi | `radial-gradient(78% 62% at 50% 46%, transparent 55%, rgba(2,5,14,0.62))` |
+
+Intensitas tiap layer bisa di-override lewat props `glow` / `watermark` / `noise` / `vignette` / `arc`; default di `SHARE_BG_DEFAULTS` (`share-card-theme.ts`). Origin & radius glow di `GLOW_ORIGIN` / `GLOW_RADIUS` (pusat logo = padding 88 + 96/2 = 136px).
+
+**Aturan capture (jangan dilanggar):**
+
+- **DILARANG `mix-blend-mode`.** Tidak ikut ter-capture `html-to-image` (tidak ada di lib-nya sama sekali) — grain sebelumnya hilang total karena ini. Selain itu `overlay` di atas backdrop gelap (`#0a1428` ≈ 0.04) secara matematis no-op: `2 × 0.04 × 0.5 = 0.04`, jadi hasilnya identik dengan backdrop.
+- **DILARANG CSS `filter`** — tidak konsisten saat dirasterisasi ke canvas.
+- Noise/watermark/arc HARUS SVG atau PNG **data-URI** di `background-image`. `html-to-image` melewatkan URL `data:` (`isDataUrl` di `lib/dataurl.js`), jadi tidak ada fetch/decode yang bisa gagal.
+- **Grain**: di-bake ke kanal alpha tile PNG (dibuat runtime via canvas + seeded PRNG `mulberry32`, di-cache per intensitas). Alpha puncak `0.055` (terang) / `0.13` (gelap) → `|Δ luminance| ≈ 5/255`. Karena menempel di elemen gradient yang sama, `opacity` per-layer TIDAK tersedia untuk grain — atur lewat prop `noise`.
+- **`opacity` per-layer** hanya untuk elemen terpisah (watermark, arc, vignette).
+- Konten wajib `zIndex: 1` agar berada di atas semua layer background.
+
+**Cara verifikasi (jangan cuma lihat preview modal):** unduh PNG-nya, lalu ukur di file hasilnya — `|Δ luminance|` antar piksel bertetangga di region gelap rata harus ≥ 3 (bukan ~0.5 yang berarti gradient polos).
 
 ---
 

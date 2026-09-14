@@ -23,7 +23,7 @@ export default function PrestasiPage() {
             Pencapaian <i className="text-cream/70">Nyata</i>
           </>
         }
-        description="Kumpulan prestasi siswa SMAN 1 Lumajang — dari tingkat kabupaten hingga nasional, dikelola dan diverifikasi pihak sekolah."
+        description="Kumpulan prestasi siswa SMAN 1 Lumajang — dari tingkat kabupaten hingga internasional, dikelola dan diverifikasi pihak sekolah."
       />
       <main id="konten-utama">
         <Achievements />
