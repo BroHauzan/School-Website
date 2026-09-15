@@ -3,6 +3,7 @@ import { type DocumentSnapshot, type Query } from "firebase-admin/firestore";
 import { getAdminDb, adminConfigured } from "./firebase-admin";
 import { normalizeGaleriInput, validateGaleri, type GaleriDoc } from "./galeri-schema";
 import { isValidImageUrl } from "./image-url";
+import { clampStr, fallbackStr } from "./sanitize";
 
 export const GALERI_COLLECTION = "galeri";
 export { type GaleriDoc };
@@ -11,6 +12,8 @@ function snapToDoc(snap: DocumentSnapshot): GaleriDoc {
   const d = snap.data() as Record<string, unknown>;
   const norm = normalizeGaleriInput(d, undefined);
   if (!isValidImageUrl(norm.src)) norm.src = "/hero-school.webp";
+  // Defensive: dokumen bisa masuk via console/migrasi tanpa validasi API.
+  norm.caption = fallbackStr(clampStr(norm.caption, 160), "Tanpa caption");
   return {
     id: snap.id,
     ...norm,

@@ -6,6 +6,7 @@ import {
   validateTestimoni,
   type TestimoniDoc,
 } from "./testimoni-schema";
+import { clampStr, fallbackStr } from "./sanitize";
 
 export const TESTIMONI_COLLECTION = "testimoni";
 export { type TestimoniDoc };
@@ -19,6 +20,10 @@ export { type TestimoniDoc };
 function snapToDoc(snap: DocumentSnapshot): TestimoniDoc {
   const d = snap.data() as Record<string, unknown>;
   const norm = normalizeTestimoniInput(d, undefined);
+  // Defensive: dokumen bisa masuk via console/migrasi tanpa validasi API.
+  norm.quote = fallbackStr(clampStr(norm.quote, 500), "—");
+  norm.name = fallbackStr(clampStr(norm.name, 80), "Anonim");
+  norm.role = clampStr(norm.role, 80);
   return {
     id: snap.id,
     ...norm,

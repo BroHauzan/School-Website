@@ -6,6 +6,7 @@ import {
 import { getAdminDb, adminConfigured } from "./firebase-admin";
 import { normalizeBeritaInput, validateBerita, slugify, type BeritaDoc } from "./berita-schema";
 import { isValidImageUrl } from "./image-url";
+import { clampStr, fallbackStr, isValidDateISO, validDateOrDash } from "./sanitize";
 
 export const BERITA_COLLECTION = "berita";
 export { type BeritaDoc };
@@ -19,6 +20,19 @@ function snapToDoc(snap: DocumentSnapshot): BeritaDoc {
   const d = snap.data() as Record<string, unknown>;
   const norm = normalizeBeritaInput(d, undefined);
   if (!isValidImageUrl(norm.image)) norm.image = "/hero-school.webp";
+  // Defensive: dokumen bisa masuk via console/migrasi tanpa validasi API.
+  norm.title = clampStr(norm.title, 200);
+  norm.excerpt = clampStr(norm.excerpt, 500);
+  norm.tag = fallbackStr(clampStr(norm.tag, 40), "Umum");
+  norm.body = (Array.isArray(norm.body) ? norm.body : [])
+    .map((p) => clampStr(String(p), 5000))
+    .slice(0, 200);
+  if (!isValidDateISO(norm.dateISO)) {
+    norm.dateISO = "1970-01-01";
+    norm.dateLabel = "-";
+  } else {
+    norm.dateLabel = validDateOrDash(norm.dateISO, norm.dateLabel);
+  }
   return {
     id: snap.id,
     ...norm,
@@ -130,6 +144,10 @@ export async function slugTaken(slug: string, exceptId?: string): Promise<boolea
   return snap.docs.some((d) => d.id !== exceptId);
 }
 
+function randomSlugSuffix(): string {
+  return (Math.random().toString(36).slice(2, 6) || "x1y2").toLowerCase();
+}
+
 export async function createBerita(input: Record<string, unknown>): Promise<BeritaDoc> {
   const check = validateBerita(input);
   if (!check.ok) throw Object.assign(new Error(check.errors.join(" ")), { status: 400 });
@@ -137,21 +155,30 @@ export async function createBerita(input: Record<string, unknown>): Promise<Beri
   if (!isValidImageUrl(norm.image)) {
     throw Object.assign(new Error("URL gambar tidak diizinkan. Gunakan hasil upload atau path lokal."), { status: 400 });
   }
-  if (await slugTaken(norm.slug)) {
-    norm.slug = `${norm.slug}-${Date.now().toString(36)}`;
-  }
+  const db = getAdminDb();
   const now = new Date().toISOString();
-  const ref = await getAdminDb().collection(BERITA_COLLECTION).add({
-    ...norm,
-    createdAt: now,
-    updatedAt: now,
+  const docRef = db.collection(BERITA_COLLECTION).doc();
+  await db.runTransaction(async (tx) => {
+    const q = db.collection(BERITA_COLLECTION).where("slug", "==", norm.slug).limit(1);
+    const snap = await tx.get(q);
+    if (!snap.empty) {
+      norm.slug = `${norm.slug}-${randomSlugSuffix()}`;
+      const retry = await tx.get(
+        db.collection(BERITA_COLLECTION).where("slug", "==", norm.slug).limit(1)
+      );
+      if (!retry.empty) {
+        throw Object.assign(new Error("Slug sudah dipakai, coba judul berbeda."), { status: 409 });
+      }
+    }
+    tx.set(docRef, { ...norm, createdAt: now, updatedAt: now });
   });
-  return { id: ref.id, ...norm, createdAt: now, updatedAt: now };
+  return { id: docRef.id, ...norm, createdAt: now, updatedAt: now };
 }
 
 export async function updateBerita(id: string, input: Record<string, unknown>): Promise<BeritaDoc> {
   const prev = await getBeritaById(id);
   if (!prev) throw Object.assign(new Error("Berita tidak ditemukan."), { status: 404 });
+  const clientUpdatedAt = typeof input.updatedAt === "string" ? input.updatedAt : undefined;
   const merged: Record<string, unknown> = { ...prev, ...input };
   if (input.title && !input.slug) merged.slug = slugify(String(input.title));
   const check = validateBerita(merged);
@@ -160,14 +187,35 @@ export async function updateBerita(id: string, input: Record<string, unknown>): 
   if (!isValidImageUrl(norm.image)) {
     throw Object.assign(new Error("URL gambar tidak diizinkan. Gunakan hasil upload atau path lokal."), { status: 400 });
   }
-  if (norm.slug !== prev.slug && (await slugTaken(norm.slug, id))) {
-    norm.slug = `${norm.slug}-${Date.now().toString(36)}`;
-  }
+  const db = getAdminDb();
   const now = new Date().toISOString();
-  await getAdminDb().collection(BERITA_COLLECTION).doc(id).set(
-    { ...norm, createdAt: prev.createdAt, updatedAt: now },
-    { merge: true }
-  );
+  const docRef = db.collection(BERITA_COLLECTION).doc(id);
+  const slugChanged = norm.slug !== prev.slug;
+  await db.runTransaction(async (tx) => {
+    const storedSnap = await tx.get(docRef);
+    if (!storedSnap.exists) {
+      throw Object.assign(new Error("Berita tidak ditemukan."), { status: 404 });
+    }
+    const stored = storedSnap.data() as Record<string, unknown>;
+    if (clientUpdatedAt && String(stored.updatedAt ?? "") !== clientUpdatedAt) {
+      throw Object.assign(new Error("Data sudah diubah pihak lain, muat ulang dulu."), { status: 409 });
+    }
+    if (slugChanged) {
+      const q = db.collection(BERITA_COLLECTION).where("slug", "==", norm.slug).limit(2);
+      const snap = await tx.get(q);
+      const taken = !snap.empty && snap.docs.some((d) => d.id !== id);
+      if (taken) {
+        norm.slug = `${norm.slug}-${randomSlugSuffix()}`;
+        const retry = await tx.get(
+          db.collection(BERITA_COLLECTION).where("slug", "==", norm.slug).limit(1)
+        );
+        if (!retry.empty) {
+          throw Object.assign(new Error("Slug sudah dipakai, coba judul berbeda."), { status: 409 });
+        }
+      }
+    }
+    tx.set(docRef, { ...norm, createdAt: prev.createdAt, updatedAt: now }, { merge: true });
+  });
   return { id, ...norm, createdAt: prev.createdAt, updatedAt: now };
 }
 

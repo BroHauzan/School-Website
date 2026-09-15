@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-export function ConfirmDialog({ title, desc, confirm, onOk }: { title: string; desc: string; confirm?: string; onOk: () => Promise<void> }) {
+export function ConfirmDialog({ title, desc, confirm, onOk }: { title: string; desc: string; confirm?: string; onOk: () => Promise<boolean> }) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
 
   // Fokus ke tombol aman saat dialog terbuka + tutup dengan Escape.
@@ -26,9 +27,10 @@ export function ConfirmDialog({ title, desc, confirm, onOk }: { title: string; d
           <div role="dialog" aria-modal="true" aria-labelledby="confirm-title" className="w-full max-w-sm rounded-lg bg-paper p-6" onClick={(e) => e.stopPropagation()}>
             <h3 id="confirm-title" className="font-display text-xl text-ink">{title}</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted">{desc}</p>
+            {err ? <p role="alert" className="mt-3 rounded-lg border border-red-500/25 bg-red-50 px-3 py-2 text-sm text-red-900">{err}</p> : null}
             <div className="mt-5 flex justify-end gap-2">
               <button ref={cancelRef} type="button" disabled={busy} onClick={() => setOpen(false)} className="rounded-full border border-navy/20 px-5 py-2 text-sm text-navy disabled:opacity-50">Batal</button>
-              <button type="button" disabled={busy} onClick={async () => { setBusy(true); try { await onOk(); } finally { setOpen(false); setBusy(false); } }} className="rounded-full bg-red-900 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50">
+              <button type="button" disabled={busy} onClick={async () => { setBusy(true); setErr(null); try { const ok = await onOk(); if (ok) setOpen(false); } catch (e) { setErr(e instanceof Error ? e.message : "Gagal menghapus."); } finally { setBusy(false); } }} className="rounded-full bg-red-900 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50">
                 {busy ? "Menghapus…" : confirm ?? "Ya, hapus"}
               </button>
             </div>

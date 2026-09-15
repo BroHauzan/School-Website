@@ -22,11 +22,13 @@ export function BeritaForm({ mode, id, initial }: { mode: "create" | "edit"; id?
   const [v, setV] = useState(initial);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [uploadBusy, setUploadBusy] = useState(false);
   const set = <K extends keyof BeritaFormValue>(k: K, val: BeritaFormValue[K]) =>
     setV((p) => ({ ...p, [k]: val }));
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (busy || uploadBusy) return;
     setError(null); setBusy(true);
     try {
       const body = v.bodyText.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
@@ -71,8 +73,8 @@ export function BeritaForm({ mode, id, initial }: { mode: "create" | "edit"; id?
         </Field>
         {error ? <p role="alert" className="rounded-lg border border-red-500/25 bg-red-50 px-4 py-3 text-sm text-red-900">{error}</p> : null}
         <div className="flex flex-wrap gap-3">
-          <button type="submit" disabled={busy} className="rounded-full bg-navy px-6 py-2.5 text-sm font-semibold text-cream transition-colors hover:bg-navy-light disabled:opacity-50">
-            {busy ? "Menyimpan…" : mode === "create" ? "Terbitkan berita" : "Simpan perubahan"}
+          <button type="submit" disabled={busy || uploadBusy} className="rounded-full bg-navy px-6 py-2.5 text-sm font-semibold text-cream transition-colors hover:bg-navy-light disabled:opacity-50">
+            {uploadBusy ? "Tunggu upload selesai…" : busy ? "Menyimpan…" : mode === "create" ? "Terbitkan berita" : "Simpan perubahan"}
           </button>
           <button type="button" onClick={() => router.push("/admin")} className="rounded-full border border-navy/20 px-6 py-2.5 text-sm text-navy transition-colors hover:border-navy/50">
             Batal
@@ -82,7 +84,7 @@ export function BeritaForm({ mode, id, initial }: { mode: "create" | "edit"; id?
       <aside className="space-y-6">
         <div className="rounded-lg border border-navy/10 bg-paper p-6">
           <Field label="Gambar header">
-            <ImageUploadField value={v.image} onChange={(url) => set("image", url)} />
+            <ImageUploadField value={v.image} onChange={(url) => set("image", url)} onBusyChange={setUploadBusy} />
           </Field>
         </div>
         <div className="space-y-4 rounded-lg border border-navy/10 bg-paper p-6">

@@ -9,12 +9,21 @@ export function PrestasiTable({ items }: { items: PrestasiDoc[] }) {
   const router = useRouter();
   const [err, setErr] = useState<string | null>(null);
 
-  async function onDelete(id: string) {
+  async function onDelete(id: string): Promise<boolean> {
     setErr(null);
-    const res = await fetch(`/api/prestasi/${id}`, { method: "DELETE" });
-    const json = (await res.json().catch(() => null)) as { error?: string } | null;
-    if (!res.ok) { setErr(json?.error ?? "Gagal menghapus."); return; }
-    router.refresh();
+    try {
+      const res = await fetch(`/api/prestasi/${id}`, { method: "DELETE" });
+      const json = (await res.json().catch(() => null)) as { error?: string } | null;
+      if (!res.ok) throw new Error(json?.error ?? "Gagal menghapus.");
+      router.refresh();
+      return true;
+    } catch (e) {
+      const msg = e instanceof TypeError
+        ? "Koneksi terputus — data belum dihapus. Periksa internet lalu coba lagi."
+        : e instanceof Error ? e.message : "Gagal menghapus.";
+      setErr(msg);
+      throw new Error(msg);
+    }
   }
 
   if (items.length === 0) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { inputCls } from "./Field";
 
 export interface ImageUploadFieldProps {
@@ -8,6 +8,7 @@ export interface ImageUploadFieldProps {
   onChange: (url: string) => void;
   uploadUrl?: string;
   previewAlt?: string;
+  onBusyChange?: (busy: boolean) => void;
 }
 
 export function ImageUploadField({
@@ -15,27 +16,58 @@ export function ImageUploadField({
   onChange,
   uploadUrl = "/api/berita/upload",
   previewAlt = "Pratinjau gambar header",
+  onBusyChange,
 }: ImageUploadFieldProps) {
   const fileRef = useRef<HTMLInputElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const userCancelledRef = useRef(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  function setBusyBoth(next: boolean) {
+    setBusy(next);
+    onBusyChange?.(next);
+  }
+
+  useEffect(() => () => abortRef.current?.abort(), []);
+
   async function upload(file: File) {
+    // Abort-previous: user eksplisit pilih file baru → batalkan upload lama
+    // agar respons basi tidak menimpa URL hasil upload terbaru.
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    userCancelledRef.current = false;
     setError(null);
-    setBusy(true);
+    setBusyBoth(true);
     try {
       const form = new FormData();
       form.append("file", file);
-      const res = await fetch(uploadUrl, { method: "POST", body: form });
+      const res = await fetch(uploadUrl, { method: "POST", body: form, signal: controller.signal });
       const json = (await res.json().catch(() => null)) as { url?: string; error?: string } | null;
       if (!res.ok) throw new Error(json?.error ?? "Upload gagal.");
       if (!json?.url) throw new Error("Upload gagal: URL kosong.");
       onChange(json.url);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Upload gagal.");
+      const errName = typeof e === "object" && e !== null && "name" in e ? (e as { name: unknown }).name : undefined;
+      if (errName === "AbortError") {
+        // Jangan panggil onChange: hasil upload yang dibatalkan tidak boleh dipakai.
+        setError(userCancelledRef.current ? "Upload dibatalkan." : "Upload dibatalkan, mengunggah file baru...");
+      } else {
+        setError(e instanceof Error ? e.message : "Upload gagal.");
+      }
     } finally {
-      setBusy(false);
+      // Hanya upload terbaru yang boleh menutup status busy.
+      if (abortRef.current === controller) {
+        abortRef.current = null;
+        setBusyBoth(false);
+      }
     }
+  }
+
+  function cancel() {
+    userCancelledRef.current = true;
+    abortRef.current?.abort();
   }
 
   return (
@@ -43,12 +75,20 @@ export function ImageUploadField({
       <div className="flex flex-wrap items-center gap-3">
         <button
           type="button"
-          disabled={busy}
           onClick={() => fileRef.current?.click()}
-          className="rounded-full border border-navy/20 px-5 py-2.5 text-sm font-medium text-navy transition-colors hover:border-navy/50 disabled:opacity-50"
+          className="rounded-full border border-navy/20 px-5 py-2.5 text-sm font-medium text-navy transition-colors hover:border-navy/50"
         >
           {busy ? "Mengunggah…" : value ? "Ganti gambar" : "Unggah gambar"}
         </button>
+        {busy ? (
+          <button
+            type="button"
+            onClick={cancel}
+            className="rounded-full border border-red-500/30 px-4 py-2 text-xs font-medium text-red-700 transition-colors hover:border-red-500/60"
+          >
+            Batalkan
+          </button>
+        ) : null}
         <input
           ref={fileRef}
           type="file"

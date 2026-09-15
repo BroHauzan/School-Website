@@ -7,6 +7,7 @@ import {
   validatePrestasi,
   type PrestasiDoc,
 } from "./prestasi-schema";
+import { clampStr, isValidDateISO } from "./sanitize";
 
 export const PRESTASI_COLLECTION = "prestasi";
 export { type PrestasiDoc };
@@ -20,6 +21,20 @@ export { type PrestasiDoc };
 function snapToDoc(snap: DocumentSnapshot): PrestasiDoc {
   const d = snap.data() as Record<string, unknown>;
   const norm = normalizePrestasiInput(d, undefined);
+  // Defensive: dokumen bisa masuk via console/migrasi tanpa validasi API.
+  // Scope fallback Kabupaten sudah ditangani normalize — pertahankan.
+  norm.title = clampStr(norm.title, 200);
+  if (!/^\d{4}$/.test(norm.year)) norm.year = "";
+  if (norm.dateISO && !isValidDateISO(norm.dateISO)) {
+    norm.dateISO = "";
+    norm.dateLabel = "";
+  }
+  norm.peraih = (Array.isArray(norm.peraih) ? norm.peraih : [])
+    .map((p) => ({
+      nama: clampStr(String(p.nama ?? ""), 80),
+      kelas: clampStr(String(p.kelas ?? ""), 20),
+    }))
+    .slice(0, 20);
   return {
     id: snap.id,
     ...norm,

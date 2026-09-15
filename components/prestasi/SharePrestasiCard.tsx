@@ -76,8 +76,10 @@ const BODY_FONT_STACK = '"Geist", ui-sans-serif, system-ui, sans-serif';
 /**
  * Estimasi lebar rata-rata glyph (em) — hanya dipakai bila canvas tidak
  * tersedia (SSR), supaya perhitungan tetap deterministik.
+ * Sengaja konservatif (0.72, bukan 0.62): CJK/emoji selebar ~1em, jadi
+ * under-estimate berarti judul dikira muat padahal overflow diam-diam.
  */
-const FALLBACK_CHAR_EM = 0.62;
+const FALLBACK_CHAR_EM = 0.72;
 
 function titleSize(title: string): number {
   if (title.length > 150) return 50;
@@ -149,8 +151,37 @@ function measureText(
 }
 
 /**
- * Greedy word-wrap pada lebar `maxW`. `null` = ada satu kata yang lebih lebar
- * dari area, jadi ukuran ini tidak layak dipakai.
+ * Pecah satu kata kelewat lebar jadi potongan yang muat di `maxW`
+ * (hard-break per karakter). Render memakai `overflow-wrap: anywhere`,
+ * jadi estimasi harus mencerminkan perilaku itu — bukan `return null`.
+ */
+function splitLongWord(
+  word: string,
+  size: number,
+  maxW: number,
+  weight: number,
+  stack: string,
+): string[] {
+  const chars = Array.from(word);
+  const parts: string[] = [];
+  let cur = "";
+  for (const ch of chars) {
+    const cand = cur + ch;
+    if (cur && measureText(cand, size, weight, stack) > maxW) {
+      parts.push(cur);
+      cur = ch;
+    } else {
+      cur = cand;
+    }
+  }
+  if (cur) parts.push(cur);
+  return parts.length > 0 ? parts : [word];
+}
+
+/**
+ * Greedy word-wrap pada lebar `maxW`. TIDAK PERNAH return null: kata tunggal
+ * yang lebih lebar dari area dipecah paksa (lihat `splitLongWord`), supaya
+ * estimasi tinggi tidak under-estimate dan data tidak hilang diam-diam.
  */
 function wrapWords(
   text: string,
@@ -158,30 +189,37 @@ function wrapWords(
   maxW: number,
   weight: number,
   stack: string,
-): string[] | null {
+): string[] {
   const words = text.split(" ").filter(Boolean);
   const spaceW = measureText(" ", size, weight, stack);
   const lines: string[] = [];
   let line = "";
+  const pushLine = (l: string) => {
+    if (l) lines.push(l);
+  };
   for (const word of words) {
-    if (line) {
-      const w = measureText(line, size, weight, stack);
-      if (w + spaceW + measureText(word, size, weight, stack) <= maxW) {
-        line = `${line} ${word}`;
-        continue;
+    const pieces =
+      measureText(word, size, weight, stack) > maxW
+        ? splitLongWord(word, size, maxW, weight, stack)
+        : [word];
+    for (const piece of pieces) {
+      if (line) {
+        const w = measureText(line, size, weight, stack);
+        if (w + spaceW + measureText(piece, size, weight, stack) <= maxW) {
+          line = `${line} ${piece}`;
+          continue;
+        }
+        pushLine(line);
       }
-      lines.push(line);
-    } else if (measureText(word, size, weight, stack) > maxW) {
-      return null;
+      line = piece;
     }
-    line = word;
   }
-  if (line) lines.push(line);
+  pushLine(line);
   return lines;
 }
 
-/** Jumlah baris judul pada ukuran font tertentu. `null` = ada kata kelewat lebar. */
-function wrapTitle(title: string, size: number, maxW: number): string[] | null {
+/** Jumlah baris judul pada ukuran font tertentu. */
+function wrapTitle(title: string, size: number, maxW: number): string[] {
   return wrapWords(title, size, maxW, 700, TITLE_FONT_STACK);
 }
 
@@ -190,9 +228,14 @@ function wrapTitle(title: string, size: number, maxW: number): string[] | null {
  * Dipakai untuk menghitung sisa ruang judul, bukan mengira-ngira.
  */
 function peraihItemH(nama: string, kelas: string, colW: number): number {
-  const lines = wrapWords(nama, PERAIH_NAME_SIZE, colW, 500, BODY_FONT_STACK);
-  const nameLines = lines ? lines.length : 1;
-  return nameLines * PERAIH_NAME_LH + (kelas ? PERAIH_KELAS_GAP + PERAIH_KELAS_H : 0);
+  const nameLines = Math.min(
+    wrapWords(nama, PERAIH_NAME_SIZE, colW, 500, BODY_FONT_STACK).length,
+    2,
+  );
+  return (
+    Math.max(nameLines, 1) * PERAIH_NAME_LH +
+    (kelas ? PERAIH_KELAS_GAP + PERAIH_KELAS_H : 0)
+  );
 }
 
 /** Tinggi blok peraih, px — termasuk batas `maxHeight` daftar dan catatan sisa. */
@@ -257,20 +300,22 @@ function fitTitle(
 
   for (const size of ladder) {
     const lines = wrapTitle(title, size, TITLE_BOX_W);
-    if (lines && lines.length <= linesThatFit(size, budget)) {
+    if (lines.length <= linesThatFit(size, budget)) {
       return { text: title, size, breakWord: false };
     }
   }
 
   const size = ladder[ladder.length - 1] ?? MIN_TITLE_SIZE;
   const maxLines = linesThatFit(size, budget);
+  // Buang kata dari ujung (per-kata utuh, tidak pernah di tengah kata)
+  // sampai muat, lalu tempel `...` sebagai penanda terpotong.
   const words = title.split(" ").filter(Boolean);
   let kept = words;
   while (kept.length > 0) {
     const candidate = `${kept.join(" ")}${ELLIPSIS}`;
     const lines = wrapTitle(candidate, size, TITLE_BOX_W);
-    if (lines && lines.length <= maxLines) {
-      return { text: candidate, size, breakWord: false };
+    if (lines.length <= maxLines) {
+      return { text: candidate, size, breakWord: kept.length < words.length };
     }
     kept = kept.slice(0, -1);
   }
@@ -293,7 +338,8 @@ export function SharePrestasiCard({
   dateLabel,
   peraih,
 }: SharePrestasiCardProps) {
-  const tier = TIER_STYLE[scope];
+  // Data korup (mis. scope "Kecamatan") tidak boleh crash generate PNG.
+  const tier = TIER_STYLE[scope] ?? TIER_STYLE.Kabupaten;
   const shown = peraih.slice(0, MAX_PERAIH);
   const rest = peraih.length - shown.length;
   const siteLabel = SITE_URL.replace(/^https?:\/\//, "").replace(/\/$/, "");
@@ -458,12 +504,18 @@ export function SharePrestasiCard({
               {shown.map((r, i) => (
                 <li key={`${r.nama}-${i}`} style={{ minWidth: 0 }}>
                   <p
+                    title={r.nama}
                     style={{
                       margin: 0,
                       fontSize: PERAIH_NAME_SIZE,
                       fontWeight: 500,
                       lineHeight: 1.25,
                       color: CARD_COLORS.cream,
+                      display: "-webkit-box",
+                      WebkitBoxOrient: "vertical",
+                      WebkitLineClamp: 2,
+                      overflow: "hidden",
+                      overflowWrap: "anywhere",
                     }}
                   >
                     {r.nama}
