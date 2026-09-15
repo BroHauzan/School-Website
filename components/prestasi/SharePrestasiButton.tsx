@@ -2,6 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { slugify } from "@/lib/berita-schema";
+import {
+  SHARE_BODY_SELECTOR,
+  SHARE_TITLE_SELECTOR,
+  fitTitleToDom,
+  waitForLayout,
+} from "@/lib/share-card-fit";
 import { cn } from "@/lib/utils";
 import type { PrestasiDoc } from "@/lib/prestasi-schema";
 import { CARD_COLORS, CARD_H, CARD_W } from "./share-card-theme";
@@ -73,6 +79,14 @@ export function SharePrestasiButton({
   const [error, setError] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [blob, setBlob] = useState<Blob | null>(null);
+  /**
+   * Cap ukuran judul hasil pengukuran DOM. Diisi bila judul ternyata lebih
+   * tinggi daripada ruang tersedia setelah font siap (kasus font telat termuat,
+   * metrik beda per perangkat). `undefined` = pakai hitungan `fitTitle` apa adanya.
+   */
+  const [titleSizeCap, setTitleSizeCap] = useState<number | undefined>(undefined);
+  /** true = judul punya kata lebih lebar dari kolom; izinkan pemenggalan. */
+  const [titleBreakWord, setTitleBreakWord] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   /** Object URL aktif — dipakai saat revoke supaya tidak perlu state di closure. */
@@ -91,6 +105,8 @@ export function SharePrestasiButton({
     }
     setPreviewUrl(null);
     setBlob(null);
+    setTitleSizeCap(undefined);
+    setTitleBreakWord(false);
     setPhase("idle");
     setError(null);
   }, []);
@@ -130,6 +146,24 @@ export function SharePrestasiButton({
       try {
         // Pastikan font sudah siap sebelum capture — cegah teks fallback di PNG.
         await ensureFonts(node);
+
+        // Ukur judul di DOM NYATA setelah font siap, lalu turunkan fontnya
+        // sampai tinggi naturalnya muat. Ini menutup celah `fitTitle` yang
+        // menghitung baris pakai canvas SEBELUM font display termuat: metrik
+        // fallback bikin hasil wrap di DOM 1 baris lebih banyak, dan
+        // `html-to-image` menyalin tinggi hasil layout ke clone sehingga baris
+        // ekstra itu terpotong diam-diam (HP aman, laptop kepotong).
+        const bodyEl = node.querySelector<HTMLElement>(SHARE_BODY_SELECTOR);
+        const titleEl = node.querySelector<HTMLElement>(SHARE_TITLE_SELECTOR);
+        if (bodyEl && titleEl) {
+          const cap = await fitTitleToDom(bodyEl, titleEl, {
+            onShrink: (size) => setTitleSizeCap(size),
+            onBreakWord: () => setTitleBreakWord(true),
+          });
+          if (cancelled) return;
+          // Perubahan state -> React render ulang, tunggu commit-nya dulu.
+          if (cap !== null) await waitForLayout();
+        }
 
         const { toBlob, getFontEmbedCSS } = await import("html-to-image");
         const opts = {
@@ -232,6 +266,8 @@ export function SharePrestasiButton({
               year={prestasi.year}
               dateLabel={prestasi.dateLabel}
               peraih={prestasi.peraih}
+              titleSizeCap={titleSizeCap}
+              titleBreakWord={titleBreakWord}
             />
           </div>
         </div>

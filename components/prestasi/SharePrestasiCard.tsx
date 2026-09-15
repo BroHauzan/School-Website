@@ -2,6 +2,7 @@ import type { PrestasiPeraih, PrestasiScope } from "@/lib/prestasi-schema";
 import { SITE_URL } from "@/lib/school";
 import { CARD_COLORS, CARD_H, CARD_W, TIER_STYLE } from "./share-card-theme";
 import { ShareCardBackground } from "./ShareCardBackground";
+import { SHARE_BODY_ATTR, SHARE_TITLE_ATTR } from "@/lib/share-card-fit";
 
 export type SharePrestasiCardProps = {
   title: string;
@@ -10,6 +11,18 @@ export type SharePrestasiCardProps = {
   /** Label tanggal siap tampil, mis. "12 Agustus 2026". Kosong = pakai `year`. */
   dateLabel: string;
   peraih: PrestasiPeraih[];
+  /**
+   * Cap inklusif ukuran font judul (px). Diisi `SharePrestasiButton` setelah
+   * mengukur DOM nyata, untuk kasus font display telat termuat sehingga hasil
+   * wrap beda dari perhitungan. Kosong = pakai `titleSize()` apa adanya.
+   */
+  titleSizeCap?: number;
+  /**
+   * Paksa izinkan pemenggalan kata (`overflow-wrap: anywhere`). Diisi bila
+   * pengukuran DOM menemukan kata yang lebih lebar dari kolom — tanpa ini kata
+   * tersebut terpotong ke samping tanpa jejak.
+   */
+  titleBreakWord?: boolean;
 };
 
 /** Sisanya diringkas jadi "+N peraih lainnya" supaya kartu tidak kepanjangan. */
@@ -291,12 +304,19 @@ function linesThatFit(size: number, availH: number): number {
 function fitTitle(
   raw: string,
   availH: number,
+  cap?: number,
 ): { text: string; size: number; breakWord: boolean } {
   const title = raw.trim().replace(/\s+/g, " ");
   const start = titleSize(title);
-  const ladder = TITLE_LADDER.filter((size) => size <= start);
+  // `cap` dari pengukuran DOM: batasi ukuran maksimum supaya judul tidak
+  // kembali ke ukuran yang sudah terbukti kelebihan tinggi.
+  const top = cap === undefined ? start : Math.min(start, cap);
+  const ladder = TITLE_LADDER.filter((size) => size <= top);
   const budget = Math.max(availH - TITLE_SAFETY_PX, MIN_TITLE_SIZE * TITLE_LINE_HEIGHT);
-  if (!title) return { text: "", size: start, breakWord: false };
+  if (!title) return { text: "", size: top, breakWord: false };
+  // `cap` bisa lebih kecil dari semua isi tangga (mis. hasil pengukuran DOM
+  // memberi 30px) — pakai nilainya langsung supaya tidak balik membesar.
+  if (ladder.length === 0) ladder.push(top);
 
   for (const size of ladder) {
     const lines = wrapTitle(title, size, TITLE_BOX_W);
@@ -337,6 +357,8 @@ export function SharePrestasiCard({
   year,
   dateLabel,
   peraih,
+  titleSizeCap,
+  titleBreakWord,
 }: SharePrestasiCardProps) {
   // Data korup (mis. scope "Kecamatan") tidak boleh crash generate PNG.
   const tier = TIER_STYLE[scope] ?? TIER_STYLE.Kabupaten;
@@ -346,7 +368,7 @@ export function SharePrestasiCard({
   const meta = dateLabel || year;
   // Tinggi yang benar-benar tersisa untuk judul — dihitung dari blok nyata,
   // bukan diasumsikan selalu `MAX_TITLE_LINES` baris.
-  const fitted = fitTitle(title, titleAvailableH(shown, rest));
+  const fitted = fitTitle(title, titleAvailableH(shown, rest), titleSizeCap);
 
   return (
     <div
@@ -364,6 +386,7 @@ export function SharePrestasiCard({
       <ShareCardBackground />
 
       <div
+        {...{ [SHARE_BODY_ATTR]: "" }}
         style={{
           position: "relative",
           display: "flex",
@@ -435,14 +458,17 @@ export function SharePrestasiCard({
         {/* Judul prestasi — font display sama dengan heading web.
             Ukuran font sudah dihitung `fitTitle` supaya judul muat utuh;
             `flexShrink: 0` mencegah kolom flex memencet judul jadi terpotong
-            diam-diam. Clamp + ellipsis tinggal sebagai jaring pengaman. */}
+            diam-diam. `lineHeight` dalam px supaya tingginya bisa direproduksi
+            persis oleh clone `html-to-image`. Clamp + ellipsis jaring pengaman.
+            `SHARE_TITLE_ATTR` = titik ukur `SharePrestasiButton` sebelum capture. */}
         <h2
+          {...{ [SHARE_TITLE_ATTR]: "" }}
           style={{
             margin: `${TITLE_MARGIN_TOP}px 0 0`,
             fontFamily: "var(--font-playfair), Georgia, serif",
             fontSize: fitted.size,
             fontWeight: 700,
-            lineHeight: TITLE_LINE_HEIGHT,
+            lineHeight: `${Math.round(fitted.size * TITLE_LINE_HEIGHT * 100) / 100}px`,
             letterSpacing: `${TITLE_LETTER_SPACING_EM}em`,
             color: CARD_COLORS.cream,
             flexShrink: 0,
@@ -450,8 +476,9 @@ export function SharePrestasiCard({
             WebkitBoxOrient: "vertical",
             WebkitLineClamp: MAX_TITLE_LINES,
             textOverflow: "ellipsis",
-            // Kata tunggal yang lebih lebar dari kartu tetap harus terbaca.
-            overflowWrap: fitted.breakWord ? "anywhere" : "normal",
+            // Kata tunggal yang lebih lebar dari kartu tetap harus terbaca —
+            // baik karena perhitungan (`breakWord`) maupun temuan DOM.
+            overflowWrap: fitted.breakWord || titleBreakWord ? "anywhere" : "normal",
             overflow: "hidden",
           }}
         >

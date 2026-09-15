@@ -161,7 +161,7 @@ Kartu gambar 1080×1350 (4:5) untuk dibagikan ke sosial media — `components/pr
 - **Ukuran & warna:** `share-card-theme.ts` — `CARD_W`, `CARD_H`, `TIER_STYLE` (badge per tingkat), `CARD_COLORS`.
 - **Aturan wajib:** kartu memakai **style inline literal hex/rgba**, TIDAK boleh utility opacity Tailwind (`text-cream/70`). Tailwind v4 mengompilasinya jadi `color-mix(in oklab, ...)`; html-to-image menyalin computed style ke SVG `<foreignObject>` yang gagal dirender Safari.
 - **Font:** di-load lewat computed style (`next/font` memakai nama internal `__Playfair_Display_xxx`, bukan `"Playfair Display"`), setelah `document.fonts.ready`.
-- **Batas aman:** judul di-clamp 5 baris (ukuran turun bertahap), peraih maks 6 baris / 2 kolom + “+N peraih lainnya”.
+- **Batas aman:** judul di-clamp 5 baris, **diukur dari DOM nyata sebelum capture** (lihat bagian di bawah); peraih maks 6 baris / 2 kolom + “+N peraih lainnya”.
 - **Badge warna:** Internasional `#f5c542` (emas), Nasional cream, Provinsi/Kabupaten outline.
 - **Tombol Bagikan (tabel publik):** icon-only ghost, kotak `size-10` (target tap 40px), `opacity-0 group-hover:opacity-100 focus-visible:opacity-100 pointer-coarse:opacity-60` + `transition-opacity duration-150`. `<tr>` wajib punya class `group`. Kolomnya lebar tetap `w-14` di `<th>` dan `<td>` supaya semua tombol sejajar vertikal.
 
@@ -188,6 +188,28 @@ Intensitas tiap layer bisa di-override lewat props `glow` / `watermark` / `noise
 - Konten wajib `zIndex: 1` agar berada di atas semua layer background.
 
 **Cara verifikasi (jangan cuma lihat preview modal):** unduh PNG-nya, lalu ukur di file hasilnya — `|Δ luminance|` antar piksel bertetangga di region gelap rata harus ≥ 3 (bukan ~0.5 yang berarti gradient polos).
+
+### Judul: ukur DOM dulu, baru capture (`lib/share-card-fit.ts`)
+
+`html-to-image` menyalin **computed style** node ke `foreignObject` lalu merender ulang di sana (`cloneCSSStyle` di `node_modules/html-to-image/es/clone-node.js`) — termasuk **tinggi hasil layout**. Kalau di render ulang itu teks wrap jadi satu baris lebih banyak (font display belum termuat saat React menghitung, metrik fallback beda, subset font beda per perangkat), tinggi yang sudah terkunci + `overflow: hidden` membuat baris terakhir **terpotong tanpa ellipsis**. Gejala khasnya: hasil PNG beda per perangkat — HP aman, laptop kepotong.
+
+Karena itu `SharePrestasiButton` menjalankan urutan berikut **sebelum** `toBlob`:
+
+1. `ensureFonts(node)` — font siap dulu.
+2. `fitTitleToDom(bodyEl, titleEl, handlers)` — ukur DOM nyata:
+   - `titleOverflowsX` → ada kata lebih lebar dari kolom? panggil `onBreakWord` (set `overflow-wrap: anywhere`), lalu ulangi;
+   - `measureTitleBudget` vs `measureNaturalTitleHeight` + `titleMarginTop` → judul terlalu tinggi? turunkan satu langkah `TITLE_SIZE_LADDER` via `onShrink`, tunggu `waitForLayout()`, ulangi.
+   - maksimum 6 pass, jadi tidak pernah menggantung.
+3. Hasilnya disimpan sebagai `titleSizeCap` / `titleBreakWord` (state `SharePrestasiButton`) dan diteruskan sebagai prop ke `SharePrestasiCard`, yang membatasinya di `fitTitle`.
+4. Capture baru dijalankan setelah state itu ter-commit.
+
+Aturan yang wajib dipertahankan:
+
+- `measureTitleBudget` **hanya** menjumlahkan sibling, bukan `clientHeight − tinggi judul` — kalau tidak, perhitungannya sirkular dan font bisa turun tanpa henti.
+- Margin `auto` (dipakai kaki kartu) dilaporkan `getComputedStyle` sebagai px hasil distribusi flex. `fixedMargin()` membandingkan nilai *specified* vs *computed* dan menghitungnya `0` — kalau ikut dijumlahkan, ruang yang justru bebas dianggap terpakai dan judul dikecilkan sia-sia.
+- `lineHeight` judul ditulis dalam **px** (`size × 1.12`), supaya tinggi hasil clone bisa direproduksi persis.
+- `h2` wajib `flexShrink: 0`; kalau tidak, kolom flex akan memencetnya jadi terpotong diam-diam.
+- `waitForLayout()` di-race dengan timeout 64 ms karena `requestAnimationFrame` **tidak berjalan di tab background** — tanpa itu tombol Bagikan bisa menggantung saat user pindah tab.
 
 ---
 
