@@ -1,8 +1,5 @@
 import type { Metadata } from "next";
-import { SiteHeader } from "@/components/ui/SiteHeader";
-import { Footer } from "@/components/ui/Footer";
-import { PageHero } from "@/components/ui/PageHero";
-import { Achievements } from "@/components/sections/Achievements";
+import { HalamanSistemPage } from "@/components/public/HalamanSistemPage";
 
 export const metadata: Metadata = {
   title: "Prestasi — SMAN 1 Lumajang",
@@ -10,25 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function PrestasiPage() {
-  return (
-    <>
-      <SiteHeader solidOnTop />
-      <PageHero
-        breadcrumbs={[
-          { href: "/", label: "Beranda" },
-          { href: "/prestasi", label: "Prestasi" },
-        ]}
-        title={
-          <>
-            Pencapaian <i className="text-cream/70">Nyata</i>
-          </>
-        }
-        description="Kumpulan prestasi siswa SMAN 1 Lumajang — dari tingkat kabupaten hingga internasional, dikelola dan diverifikasi pihak sekolah."
-      />
-      <main id="konten-utama">
-        <Achievements />
-      </main>
-      <Footer />
-    </>
-  );
+  return <HalamanSistemPage systemKey="prestasi" />;
 }

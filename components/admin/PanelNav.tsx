@@ -7,6 +7,8 @@ import { LogoutButton } from "./LogoutButton";
 
 const MENUS = [
   { href: "/admin", label: "Berita", active: (p: string) => p === "/admin" || p.startsWith("/admin/berita") },
+  { href: "/admin/halaman", label: "Halaman", active: (p: string) => p.startsWith("/admin/halaman") },
+  { href: "/admin/menu", label: "Menu", active: (p: string) => p.startsWith("/admin/menu") },
   { href: "/admin/galeri", label: "Galeri", active: (p: string) => p.startsWith("/admin/galeri") },
   { href: "/admin/prestasi", label: "Prestasi", active: (p: string) => p.startsWith("/admin/prestasi") },
   { href: "/admin/testimoni", label: "Testimoni", active: (p: string) => p.startsWith("/admin/testimoni") },

@@ -165,6 +165,29 @@ Kartu gambar 1080×1350 (4:5) untuk dibagikan ke sosial media — `components/pr
 - **Badge warna:** Internasional `#f5c542` (emas), Nasional cream, Provinsi/Kabupaten outline.
 - **Tombol Bagikan (tabel publik):** icon-only ghost, kotak `size-10` (target tap 40px), `opacity-0 group-hover:opacity-100 focus-visible:opacity-100 pointer-coarse:opacity-60` + `transition-opacity duration-150`. `<tr>` wajib punya class `group`. Kolomnya lebar tetap `w-14` di `<th>` dan `<td>` supaya semua tombol sejajar vertikal.
 
+### Daftar prestasi: kartu di HP, tabel di ≥`lg` (`Achievements.tsx`)
+
+Tabel 5 kolom punya lebar **min-content ~495px** (Tanggal 108 + Tingkat 114 + Prestasi 126 + Peraih 99 + Bagikan 48), sedangkan viewport HP hanya **305–397px**. Tabel TIDAK bisa dipaksa muat di HP tanpa mengecilkan font sampai tidak terbaca — jadi di bawah `lg` isinya ditampilkan sebagai **kartu** (`<ul>` dengan `lg:hidden`), dan tabel baru muncul di `lg` (`hidden ... lg:block`).
+
+Aturan:
+
+- Sebelum memasang `min-w-[...]` pada tabel, **ukur min-content-nya** dulu. Kalau hasilnya > ~360px, tabel tidak boleh jadi satu-satunya tampilan di HP — wajib ada fallback kartu.
+- Badge tingkat dipakai bersama tabel dan kartu lewat komponen `ScopeBadge` — jangan duplikasi rantai `className` badge di dua tempat.
+- Tombol Bagikan ikut tampil di kartu (`shrink-0` di kanan atas), jadi fungsi share tidak hilang di HP. **`<li>` kartu wajib punya class `group`** — tombol share memakai `opacity-0 group-hover:opacity-100`, tanpa ancestor `group` tombolnya tak terlihat di jendela sempit yang memakai mouse (di HP aman karena `pointer-coarse:opacity-60`).
+- Breakpoint `lg` dipilih karena di 768px tabel masih butuh 820px, sedangkan di 1024px tabel hanya ~961px dan sudah muat tanpa geser.
+
+### Overflow horizontal: elemen `absolute` wajib punya containing block yang ter-clip
+
+`.sr-only` memakai `position: absolute`. Kalau semua ancestor-nya static, containing block-nya jadi `html` (initial containing block) — elemen itu **lolos** dari `overflow-x-auto` milik pembungkusnya dan melebarkan dokumen (gejala: bisa di-zoom out, ada area kosong di kanan). Di `/prestasi` ini membuat `documentElement.scrollWidth` = 792px pada viewport 375px.
+
+Aturan:
+
+- Container `overflow-x-auto` **wajib** juga `relative` (atau `contain: paint`) bila di dalamnya ada `position: absolute` / `.sr-only`.
+- Label kolom yang hanya butuh aksesibilitas → `aria-label` pada `<th>` (mis. `aria-label="Bagikan"`), bukan `<span className="sr-only">` di dalam tabel berlebar minimum.
+- Baris flex yang memuat kontrol ikonik (tombol burger, tombol ikon) → beri `shrink-0` supaya tidak dipencet jadi separuh lebar di layar sempit.
+- `html { overflow-x: clip }` (globals.css) hanya jaring pengaman, bukan pengganti perbaikan di atas.
+- Cara verifikasi: `documentElement.scrollWidth === documentElement.clientWidth` di 320/360/375/390/412/768/1024/1440 px, plus `header > div` `scrollWidth === clientWidth`.
+
 ### Layer background kartu (`ShareCardBackground`)
 
 Urutan belakang → depan:
@@ -238,5 +261,5 @@ Aturan yang wajib dipertahankan:
 
 ---
 
-**Update terakhir:** 2026-01-09  
+**Update terakhir:** 2026-09-15  
 **Maintainer:** Development Team

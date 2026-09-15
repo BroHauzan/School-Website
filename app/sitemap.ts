@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/school";
 import { listBerita } from "@/lib/berita-server";
+import { listHalaman } from "@/lib/halaman-server";
 
 export const revalidate = 3600;
 
@@ -39,5 +40,29 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  return [...staticEntries, ...beritaEntries];
+  // Halaman builder yang tayang (systemPath === null) — hindari duplikat.
+  let halamanEntries: MetadataRoute.Sitemap = [];
+  try {
+    const halaman = await listHalaman({ includeDraft: false });
+    const seen = new Set<string>();
+    halamanEntries = halaman
+      .filter((h) => h.systemPath === null && h.published !== false)
+      .flatMap((h) => {
+        const url = `${base}/halaman/${h.slug}`;
+        if (seen.has(url)) return [];
+        seen.add(url);
+        return [
+          {
+            url,
+            lastModified: h.updatedAt ? new Date(h.updatedAt) : new Date(),
+            changeFrequency: "weekly" as const,
+            priority: 0.6,
+          },
+        ];
+      });
+  } catch {
+    halamanEntries = [];
+  }
+
+  return [...staticEntries, ...beritaEntries, ...halamanEntries];
 }

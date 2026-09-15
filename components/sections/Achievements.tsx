@@ -2,6 +2,29 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Reveal } from "@/components/ui/Reveal";
 import { SharePrestasiButton } from "@/components/prestasi/SharePrestasiButton";
 import { listPrestasi } from "@/lib/prestasi-server";
+import type { PrestasiScope } from "@/lib/prestasi-schema";
+
+/**
+ * Badge tingkat — satu sumber untuk tabel (≥lg) dan kartu (<lg).
+ * Tingkat tinggi solid: internasional pakai emas, nasional cream.
+ */
+function ScopeBadge({ scope }: { scope: PrestasiScope }) {
+  const isInternational = scope === "Internasional";
+  const isNational = scope === "Nasional";
+  return (
+    <span
+      className={
+        isInternational
+          ? "rounded-full bg-[#f5c542] px-3 py-1 text-xs font-medium text-navy"
+          : isNational
+            ? "rounded-full bg-cream px-3 py-1 text-xs font-medium text-navy"
+            : "rounded-full border border-cream/25 px-3 py-1 text-xs text-cream/75"
+      }
+    >
+      {scope}
+    </span>
+  );
+}
 
 /**
  * Prestasi siswa dari koleksi Firestore `prestasi` — diinput lewat panel admin.
@@ -62,7 +85,71 @@ export async function Achievements() {
               ))}
             </div>
 
-            <div className="mt-16 overflow-x-auto" tabIndex={0} role="region" aria-label="Tabel daftar prestasi">
+            {/*
+              Tabel 5 kolom punya lebar min-content ~495px (Tanggal 108 +
+              Tingkat 114 + Prestasi 126 + Peraih 99 + Bagikan 48), sedangkan
+              viewport HP hanya 305–397px. Tabel TIDAK bisa dipaksa muat di HP
+              tanpa mengecilkan font sampai tidak terbaca, jadi di bawah `lg`
+              isi ditampilkan sebagai kartu — semua informasi langsung terlihat
+              tanpa perlu geser horizontal.
+            */}
+            <ul className="mt-12 space-y-4 lg:hidden">
+              {items.map((p) => (
+                <li
+                  key={p.id}
+                  className="group rounded-lg border border-cream/15 bg-navy-light p-5 sm:p-6"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <ScopeBadge scope={p.scope} />
+                        <span className="font-display text-xl text-cream/85">
+                          {p.year}
+                        </span>
+                      </div>
+                      {p.dateLabel ? (
+                        <p className="mt-2 text-[11px] uppercase tracking-[0.18em] text-cream/50">
+                          {p.dateLabel}
+                        </p>
+                      ) : null}
+                    </div>
+                    <div className="shrink-0">
+                      <SharePrestasiButton prestasi={p} dark />
+                    </div>
+                  </div>
+
+                  <p className="mt-4 font-medium leading-snug text-cream">
+                    {p.title}
+                  </p>
+
+                  <div className="mt-4 border-t border-cream/10 pt-4">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-cream/45">
+                      Peraih
+                    </p>
+                    <ul className="mt-2 space-y-1">
+                      {p.peraih.map((r, ri) => (
+                        <li key={ri} className="text-sm text-cream/75">
+                          {r.nama}
+                          {r.kelas ? (
+                            <span className="ml-2 text-xs uppercase tracking-[0.14em] text-cream/45">
+                              {r.kelas}
+                            </span>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            {/*
+              `relative` WAJIB: menjadikan wrapper containing block supaya
+              `.sr-only` (position:absolute) di dalam tabel tidak lolos dari
+              clipping `overflow-x-auto` — kalau lolos, containing block-nya
+              jadi `html` dan dokumen melebar ~792px (area kosong di kanan).
+            */}
+            <div className="relative mt-16 hidden overflow-x-auto lg:block" tabIndex={0} role="region" aria-label="Tabel daftar prestasi">
               <table className="w-full min-w-[820px] border-collapse text-left">
                 <caption className="sr-only">
                   Daftar prestasi sekolah beserta tahun, tingkat, dan peraih.
@@ -73,60 +160,43 @@ export async function Achievements() {
                     <th scope="col" className="px-1 py-5 font-medium">Tingkat</th>
                     <th scope="col" className="px-1 py-5 font-medium">Prestasi</th>
                     <th scope="col" className="px-1 py-5 font-medium">Peraih</th>
-                    <th scope="col" className="w-14 px-1 py-5 font-medium">
-                      <span className="sr-only">Bagikan</span>
-                    </th>
+                    <th scope="col" className="w-14 px-1 py-5 font-medium" aria-label="Bagikan" />
                   </tr>
                 </thead>
                 <tbody>
-                  {items.map((p) => {
-                    // Tingkat tinggi solid — internasional pakai emas, nasional cream.
-                    const isInternational = p.scope === "Internasional";
-                    const isNational = p.scope === "Nasional";
-                    return (
-                      <tr key={p.id} className="group border-b border-cream/10 transition-colors hover:bg-white/[0.04]">
-                        <td className="py-6 pr-4">
-                          <p className="font-display text-2xl text-cream/85">{p.year}</p>
-                          {p.dateLabel ? (
-                            <p className="mt-1 text-[11px] uppercase tracking-[0.18em] text-cream/50">
-                              {p.dateLabel}
-                            </p>
-                          ) : null}
-                        </td>
-                        <td className="py-6 pr-4">
-                          <span
-                            className={
-                              isInternational
-                                ? "rounded-full bg-[#f5c542] px-3 py-1 text-xs font-medium text-navy"
-                                : isNational
-                                  ? "rounded-full bg-cream px-3 py-1 text-xs font-medium text-navy"
-                                  : "rounded-full border border-cream/25 px-3 py-1 text-xs text-cream/75"
-                            }
-                          >
-                            {p.scope}
-                          </span>
-                        </td>
-                        <td className="py-6 pr-4 font-medium text-cream">{p.title}</td>
-                        <td className="py-6">
-                          <ul className="space-y-1">
-                            {p.peraih.map((r, ri) => (
-                              <li key={ri} className="text-sm text-cream/75">
-                                {r.nama}
-                                {r.kelas ? (
-                                  <span className="ml-2 text-xs uppercase tracking-[0.14em] text-cream/45">
-                                    {r.kelas}
-                                  </span>
-                                ) : null}
-                              </li>
-                            ))}
-                          </ul>
-                        </td>
-                        <td className="w-14 py-6 pl-2">
-                          <SharePrestasiButton prestasi={p} dark />
-                        </td>
-                      </tr>
-                    );
-                  })}
+                  {items.map((p) => (
+                    <tr key={p.id} className="group border-b border-cream/10 transition-colors hover:bg-white/[0.04]">
+                      <td className="py-6 pr-4">
+                        <p className="font-display text-2xl text-cream/85">{p.year}</p>
+                        {p.dateLabel ? (
+                          <p className="mt-1 text-[11px] uppercase tracking-[0.18em] text-cream/50">
+                            {p.dateLabel}
+                          </p>
+                        ) : null}
+                      </td>
+                      <td className="py-6 pr-4">
+                        <ScopeBadge scope={p.scope} />
+                      </td>
+                      <td className="py-6 pr-4 font-medium text-cream">{p.title}</td>
+                      <td className="py-6">
+                        <ul className="space-y-1">
+                          {p.peraih.map((r, ri) => (
+                            <li key={ri} className="text-sm text-cream/75">
+                              {r.nama}
+                              {r.kelas ? (
+                                <span className="ml-2 text-xs uppercase tracking-[0.14em] text-cream/45">
+                                  {r.kelas}
+                                </span>
+                              ) : null}
+                            </li>
+                          ))}
+                        </ul>
+                      </td>
+                      <td className="w-14 py-6 pl-2">
+                        <SharePrestasiButton prestasi={p} dark />
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>

@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import { SiteHeader } from "@/components/ui/SiteHeader";
-import { Footer } from "@/components/ui/Footer";
-import { Extracurricular } from "@/components/sections/Extracurricular";
+import { HalamanSistemPage } from "@/components/public/HalamanSistemPage";
 
 export const metadata: Metadata = {
   title: "Ekstrakurikuler — SMAN 1 Lumajang",
@@ -9,13 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function EskulPage() {
-  return (
-    <>
-      <SiteHeader solidOnTop />
-      <main id="konten-utama">
-        <Extracurricular />
-      </main>
-      <Footer />
-    </>
-  );
+  return <HalamanSistemPage systemKey="eskul" />;
 }

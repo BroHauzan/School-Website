@@ -55,6 +55,34 @@
           "order": "ASCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "halaman",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "published",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "urutan",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "halaman",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "groupKey",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "urutan",
+          "order": "ASCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": []

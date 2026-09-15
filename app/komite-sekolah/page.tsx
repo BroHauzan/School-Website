@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import { SiteHeader } from "@/components/ui/SiteHeader";
-import { Footer } from "@/components/ui/Footer";
-import { KomiteSekolah } from "@/components/sections/KomiteSekolah";
+import { HalamanSistemPage } from "@/components/public/HalamanSistemPage";
 
 export const metadata: Metadata = {
   title: "Komite Sekolah — SMAN 1 Lumajang",
@@ -9,13 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function KomiteSekolahPage() {
-  return (
-    <>
-      <SiteHeader solidOnTop />
-      <main id="konten-utama">
-        <KomiteSekolah />
-      </main>
-      <Footer />
-    </>
-  );
+  return <HalamanSistemPage systemKey="komite-sekolah" />;
 }

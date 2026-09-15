@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import { SiteHeader } from "@/components/ui/SiteHeader";
-import { Footer } from "@/components/ui/Footer";
-import { Alumni } from "@/components/sections/Alumni";
+import { HalamanSistemPage } from "@/components/public/HalamanSistemPage";
 
 export const metadata: Metadata = {
   title: "Alumni — SMAN 1 Lumajang",
@@ -9,13 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function AlumniPage() {
-  return (
-    <>
-      <SiteHeader solidOnTop />
-      <main id="konten-utama">
-        <Alumni />
-      </main>
-      <Footer />
-    </>
-  );
+  return <HalamanSistemPage systemKey="alumni" />;
 }

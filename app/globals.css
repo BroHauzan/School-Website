@@ -47,6 +47,17 @@ body {
   overflow-x: clip;
 }
 
+/*
+ * Guard: satu elemen pelarian tidak boleh melebarkan dokumen.
+ * `body { overflow-x: clip }` saja tidak cukup — elemen ber-`position: absolute`
+ * yang containing block-nya `html` (mis. `.sr-only` di dalam tabel) melewati
+ * clip milik body, sehingga dokumen jadi lebih lebar dari viewport dan halaman
+ * bisa di-zoom out sampai menyisakan area kosong di kanan.
+ */
+html {
+  overflow-x: clip;
+}
+
 ::selection {
   background: rgba(9, 18, 43, 0.12);
 }

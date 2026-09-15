@@ -1,9 +1,5 @@
 import type { Metadata } from "next";
-import { SiteHeader } from "@/components/ui/SiteHeader";
-import { Footer } from "@/components/ui/Footer";
-import { PageHero } from "@/components/ui/PageHero";
-import { About } from "@/components/sections/About";
-import { Sejarah } from "@/components/sections/Sejarah";
+import { HalamanSistemPage } from "@/components/public/HalamanSistemPage";
 
 export const metadata: Metadata = {
   title: "Sejarah — SMAN 1 Lumajang",
@@ -12,26 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function SejarahPage() {
-  return (
-    <>
-      <SiteHeader solidOnTop />
-      <PageHero
-        breadcrumbs={[
-          { href: "/", label: "Beranda" },
-          { href: "/sejarah", label: "Sejarah" },
-        ]}
-        title={
-          <>
-            Jejak <i className="text-cream/70">Panjang</i>
-          </>
-        }
-        description="Perjalanan SMAN 1 Lumajang dalam membentuk generasi unggul sejak awal berdiri."
-      />
-      <main id="konten-utama">
-        <About />
-        <Sejarah />
-      </main>
-      <Footer />
-    </>
-  );
+  return <HalamanSistemPage systemKey="sejarah" />;
 }

@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import { SiteHeader } from "@/components/ui/SiteHeader";
-import { Footer } from "@/components/ui/Footer";
-import { PPDB } from "@/components/sections/PPDB";
+import { HalamanSistemPage } from "@/components/public/HalamanSistemPage";
 
 export const metadata: Metadata = {
   title: "PPDB — SMAN 1 Lumajang",
@@ -9,13 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function PPDBPage() {
-  return (
-    <>
-      <SiteHeader solidOnTop />
-      <main id="konten-utama">
-        <PPDB />
-      </main>
-      <Footer />
-    </>
-  );
+  return <HalamanSistemPage systemKey="ppdb" />;
 }

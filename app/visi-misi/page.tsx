@@ -1,8 +1,5 @@
 import type { Metadata } from "next";
-import { SiteHeader } from "@/components/ui/SiteHeader";
-import { Footer } from "@/components/ui/Footer";
-import { PageHero } from "@/components/ui/PageHero";
-import { VisiMisi } from "@/components/sections/VisiMisi";
+import { HalamanSistemPage } from "@/components/public/HalamanSistemPage";
 
 export const metadata: Metadata = {
   title: "Visi & Misi — SMAN 1 Lumajang",
@@ -10,25 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function VisiMisiPage() {
-  return (
-    <>
-      <SiteHeader solidOnTop />
-      <PageHero
-        breadcrumbs={[
-          { href: "/", label: "Beranda" },
-          { href: "/visi-misi", label: "Visi & Misi" },
-        ]}
-        title={
-          <>
-            Visi & <i className="text-cream/70">Misi</i>
-          </>
-        }
-        description="Landasan pendidikan yang membentuk karakter unggul dan berwawasan global."
-      />
-      <main id="konten-utama">
-        <VisiMisi />
-      </main>
-      <Footer />
-    </>
-  );
+  return <HalamanSistemPage systemKey="visi-misi" />;
 }
