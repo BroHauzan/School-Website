@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Field, inputCls } from "./Field";
 import { BlockEditor } from "@/components/blocks/BlockEditor";
@@ -57,6 +57,22 @@ export function HalamanForm({
 
   const isSystem = systemPath !== null;
   const sortedGroups = [...groups].sort((a, b) => a.urutan - b.urutan || a.label.localeCompare(b.label));
+
+  // Peringatan sebelum meninggalkan halaman dengan perubahan belum disimpan.
+  const dirty = useMemo(
+    () => JSON.stringify(v) !== JSON.stringify(initial),
+    [v, initial],
+  );
+
+  useEffect(() => {
+    if (!dirty) return;
+    function onBeforeUnload(e: BeforeUnloadEvent) {
+      e.preventDefault();
+      e.returnValue = "";
+    }
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [dirty]);
 
   const set = <K extends keyof HalamanFormValue>(k: K, val: HalamanFormValue[K]) =>
     setV((p) => ({ ...p, [k]: val }));
