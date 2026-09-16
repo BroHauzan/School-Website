@@ -3,6 +3,7 @@ import type {
   NavGroupsDoc,
   NavItemPublic,
 } from "./halaman-schema";
+import { DEFAULT_NAV_GROUPS_ITEMS } from "./page-registry";
 
 /** Href publik: slug "" (beranda) → "/", selainnya "/<slug>". */
 function hrefOf(halaman: HalamanDoc): string {
@@ -57,7 +58,11 @@ export function buildPublicNav(
   const items: NavItemPublic[] = [];
 
   // Grup dari nav_groups, diurutkan menurut groups.items[].urutan.
-  const groupItems = (Array.isArray(groups?.items) ? groups.items : [])
+  const rawGroupItems = Array.isArray(groups?.items) && groups.items.length > 0
+    ? groups.items
+    : DEFAULT_NAV_GROUPS_ITEMS;
+
+  const groupItems = rawGroupItems
     .slice()
     .sort((a, b) => urutanOf(a.urutan) - urutanOf(b.urutan));
 
@@ -77,7 +82,7 @@ export function buildPublicNav(
     const members = (grouped.get(g.groupKey) ?? []).slice().sort(byUrutan);
     if (members.length === 0) continue;
 
-    if (members[0].collapsible) {
+    if (members[0].collapsible !== false) {
       // Dropdown: label grup + children halaman.
       items.push({
         label: (g.label && String(g.label).trim()) || g.groupKey,
@@ -89,11 +94,19 @@ export function buildPublicNav(
     }
   }
 
-  // Grup yatim (halaman bergrup tanpa entri di nav_groups) → top-level.
+  // Grup yatim (halaman bergrup tanpa entri di nav_groups) → render dropdown jika collapsible.
   for (const [key, members] of grouped) {
     if (consumed.has(key)) continue;
-    for (const h of members.slice().sort(byUrutan)) {
-      items.push({ href: hrefOf(h), label: labelOf(h) });
+    const sortedMembers = members.slice().sort(byUrutan);
+    if (sortedMembers.length === 0) continue;
+    if (sortedMembers[0].collapsible !== false) {
+      const prettyLabel = key.charAt(0).toUpperCase() + key.slice(1);
+      items.push({
+        label: prettyLabel,
+        children: sortedMembers.map((h) => ({ href: hrefOf(h), label: labelOf(h) })),
+      });
+    } else {
+      for (const h of sortedMembers) items.push({ href: hrefOf(h), label: labelOf(h) });
     }
   }
 

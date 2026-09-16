@@ -9,9 +9,12 @@ import {
 } from "./halaman-schema";
 import { clampStr } from "./sanitize";
 
+import { DEFAULT_NAV_GROUPS_ITEMS } from "./page-registry";
+
 export { NAV_GROUPS_COLLECTION, NAV_GROUPS_DOC_ID, type NavGroupsDoc, type NavGroupsItem };
 
-/** Nilai awal sebelum admin pernah mengatur menu: kosong (navbar pakai NAV bawaan). */
+/** Nilai awal sebelum admin pernah mengatur menu: default grup bawaan (Profil, Akademik, Layanan). */
+export const DEFAULT_NAV_GROUPS: NavGroupsDoc = { items: DEFAULT_NAV_GROUPS_ITEMS, updatedAt: "" };
 export const EMPTY_NAV_GROUPS: NavGroupsDoc = { items: [], updatedAt: "" };
 
 const MAX_GROUPS = 30;
@@ -48,15 +51,16 @@ function normalizeItems(raw: unknown): NavGroupsItem[] {
 
 /** Daftar kelompok menu (menu induk) navbar publik. */
 export async function getNavGroups(): Promise<NavGroupsDoc> {
-  if (!adminConfigured()) return EMPTY_NAV_GROUPS;
+  if (!adminConfigured()) return DEFAULT_NAV_GROUPS;
   try {
     const snap = await getAdminDb().collection(NAV_GROUPS_COLLECTION).doc(NAV_GROUPS_DOC_ID).get();
-    if (!snap.exists) return EMPTY_NAV_GROUPS;
+    if (!snap.exists) return DEFAULT_NAV_GROUPS;
     const d = snap.data() as Record<string, unknown>;
-    return { items: normalizeItems(d.items), updatedAt: String(d.updatedAt ?? "") };
+    const normalized = normalizeItems(d.items);
+    return { items: normalized.length > 0 ? normalized : DEFAULT_NAV_GROUPS_ITEMS, updatedAt: String(d.updatedAt ?? "") };
   } catch (err) {
     console.error("[nav-groups] getNavGroups gagal:", err);
-    return EMPTY_NAV_GROUPS;
+    return DEFAULT_NAV_GROUPS;
   }
 }
 

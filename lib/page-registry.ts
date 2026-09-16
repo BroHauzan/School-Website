@@ -3,7 +3,7 @@
  * Modul ini TIDAK mengimpor "server-only" karena digunakan oleh komponen klien & server.
  */
 
-import type { NavItemPublic } from "./halaman-schema";
+import type { NavItemPublic, NavGroupsItem } from "./halaman-schema";
 
 export type SystemPageDef = {
   path: string;         // "/visi-misi" (beranda = "/")
@@ -262,6 +262,12 @@ export const RESERVED_SLUGS: string[] = Array.from(
 );
 
 /** Salinan navigasi standar yang sama dengan NAV di SiteHeader */
+export const DEFAULT_NAV_GROUPS_ITEMS: NavGroupsItem[] = [
+  { groupKey: "profil", label: "Profil", urutan: 1 },
+  { groupKey: "akademik", label: "Akademik", urutan: 2 },
+  { groupKey: "layanan", label: "Layanan", urutan: 3 },
+];
+
 export const DEFAULT_NAV_ITEMS: NavItemPublic[] = [
   {
     label: "Profil",
