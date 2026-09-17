@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionDivider } from "@/components/ui/SectionDivider";
 import Link from "next/link";
@@ -130,12 +131,13 @@ export async function BeritaPageBody({
             className="group grid overflow-hidden rounded-lg border border-navy/10 bg-paper shadow-[0_24px_60px_-30px_rgba(9,18,43,0.35)] lg:grid-cols-2"
           >
             <div className="relative aspect-[16/10] overflow-hidden bg-navy-light lg:aspect-auto lg:min-h-[320px]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src={sorotan.image}
                 alt={sorotan.title}
-                className="absolute inset-0 h-full w-full object-cover opacity-90 transition-transform duration-700 group-hover:scale-[1.04]"
-                loading="lazy"
+                fill
+                priority
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-cover opacity-90 transition-transform duration-700 group-hover:scale-[1.04]"
               />
             </div>
             <div className="flex flex-col justify-center p-7 lg:p-12">
@@ -162,12 +164,12 @@ export async function BeritaPageBody({
                     className="group flex h-full flex-col overflow-hidden rounded-lg border border-navy/10 bg-paper transition-shadow hover:shadow-[0_24px_60px_-30px_rgba(9,18,43,0.35)]"
                   >
                     <div className="relative aspect-[16/9] overflow-hidden bg-navy-light">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
+                      <Image
                         src={item.image}
                         alt={item.title}
-                        className="h-full w-full object-cover opacity-90 transition-transform duration-700 group-hover:scale-[1.04]"
-                        loading="lazy"
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        className="object-cover opacity-90 transition-transform duration-700 group-hover:scale-[1.04]"
                       />
                     </div>
                     <div className="flex flex-1 flex-col p-6">

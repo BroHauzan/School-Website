@@ -2,6 +2,7 @@ import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { listBerita } from "@/lib/berita-server";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 import Link from "next/link";
 
 /** Maksimal berita yang ditampilkan di homepage — limit hanya mempersempit
@@ -60,12 +61,12 @@ export async function Berita() {
               className="group flex h-full flex-col overflow-hidden rounded-lg border border-navy/10 bg-paper shadow-[0_24px_60px_-30px_rgba(9,18,43,0.35)]"
             >
               <div className="relative aspect-[16/10] overflow-hidden bg-navy-light">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src={lead.image}
                   alt={lead.title}
-                  className="h-full w-full object-cover opacity-90 transition-transform duration-700 group-hover:scale-[1.04]"
-                  loading="lazy"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 55vw"
+                  className="object-cover opacity-90 transition-transform duration-700 group-hover:scale-[1.04]"
                 />
               </div>
               <div className="flex flex-1 flex-col p-7 lg:p-9">

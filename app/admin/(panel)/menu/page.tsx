@@ -12,7 +12,11 @@ export default async function AdminMenuPage() {
 
   const usage: Record<string, number> = {};
   for (const h of items) {
-    if (h.groupKey) usage[h.groupKey] = (usage[h.groupKey] ?? 0) + 1;
+    // Hitung yang benar-benar tampil di navbar (published + showInNav),
+    // supaya teks "N halaman memakainya" tidak melebih-lebihkan draft.
+    if (!h.groupKey) continue;
+    if (h.published === false || h.showInNav === false) continue;
+    usage[h.groupKey] = (usage[h.groupKey] ?? 0) + 1;
   }
 
   return (

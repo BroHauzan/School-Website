@@ -2,6 +2,7 @@
 
 import { ImageUploadField } from "@/components/admin/ImageUploadField";
 import type { Blok } from "@/lib/halaman-schema";
+import { IMAGE_URL_HINT } from "@/lib/image-url";
 import { BLOK_VARIAN, MAX_ITEM_BLOK, MAX_TEKS_BLOK, SPACER_TINGGI_OPTIONS } from "./blok-meta";
 import { BlockField, BlockInput, BlockSelect, BlockTextarea } from "./BlockField";
 import { BlockItemList } from "./BlockItemList";
@@ -20,7 +21,7 @@ export function VarianSelect({
   if (opsi.length === 0) return null;
   return (
     <BlockField label="Tampilan" htmlFor={id} hint="Pilih gaya tampil yang paling cocok. Desainnya sudah disesuaikan otomatis.">
-      <BlockSelect id={id} value={blok.varian ?? opsi[0].value} onChange={(e) => onChange({ varian: e.target.value })}>
+      <BlockSelect id={id} value={opsi.some((o) => o.value === blok.varian) ? blok.varian : opsi[0].value} onChange={(e) => onChange({ varian: e.target.value })}>
         {opsi.map((o) => (
           <option key={o.value} value={o.value}>
             {o.label}
@@ -76,7 +77,7 @@ export function BlokForm({
           <BlockField label="Ukuran" htmlFor={id("level")} hint="Besar untuk judul utama.">
             <BlockSelect
               id={id("level")}
-              value={String(blok.level ?? 2)}
+              value={blok.level === 3 || blok.level === 4 ? String(blok.level) : "2"}
               onChange={(e) => onChange({ level: Number(e.target.value) as 2 | 3 | 4 })}
             >
               <option value="2">Besar</option>
@@ -94,6 +95,7 @@ export function BlokForm({
             <BlockField label="Keterangan foto" htmlFor={id("caption")} hint="Muncul kecil di bawah foto. Boleh dikosongkan.">
               <BlockInput
                 id={id("caption")}
+                maxLength={500}
                 value={blok.caption ?? ""}
                 onChange={(e) => onChange({ caption: e.target.value })}
                 placeholder="Contoh: Gedung utama sekolah"
@@ -102,6 +104,7 @@ export function BlokForm({
             <BlockField label="Tulisan pengganti" htmlFor={id("alt")} hint="Dibacakan untuk pembaca layar bila foto gagal tampil.">
               <BlockInput
                 id={id("alt")}
+                maxLength={300}
                 value={blok.alt ?? ""}
                 onChange={(e) => onChange({ alt: e.target.value })}
                 placeholder="Contoh: Siswa berbaris di lapangan"
@@ -117,6 +120,10 @@ export function BlokForm({
               uploadUrl="/api/galeri/upload"
               previewAlt="Pratinjau foto blok"
             />
+            <p className="mt-2 text-xs leading-relaxed text-muted">
+              Hanya hasil upload atau path lokal (/...) — URL luar selain Cloudinary/Firebase ditolak
+              saat simpan. {IMAGE_URL_HINT}
+            </p>
           </div>
         </div>
       );
@@ -141,6 +148,7 @@ export function BlokForm({
           <BlockField label="Tulisan tombol" htmlFor={id("teks")} hint="Singkat, mis. “Selengkapnya”.">
             <BlockInput
               id={id("teks")}
+              maxLength={5000}
               value={blok.teks ?? ""}
               onChange={(e) => onChange({ teks: e.target.value })}
               placeholder="Selengkapnya"
@@ -149,6 +157,7 @@ export function BlokForm({
           <BlockField label="Tujuan tautan" htmlFor={id("href")} hint="Alamat halaman di situs ini (mulai dengan /) atau alamat lengkap yang dimulai https://">
             <BlockInput
               id={id("href")}
+              maxLength={2048}
               value={blok.href ?? ""}
               onChange={(e) => onChange({ href: e.target.value })}
               placeholder="/ppdb atau https://…"
@@ -167,19 +176,21 @@ export function BlokForm({
           <BlockField
             label="Alamat video"
             htmlFor={id("src")}
-            hint="Tempel tautan dari YouTube atau Vimeo. Video lain belum didukung."
+            hint="Tempel tautan dari YouTube atau Vimeo. Video lain belum didukung. Tempelan watch/shorts/live otomatis jadi embed saat tayang."
           >
             <BlockInput
               id={id("src")}
+              maxLength={2048}
               value={blok.src ?? ""}
               onChange={(e) => onChange({ src: e.target.value })}
-              placeholder="https://www.youtube.com/watch?v=…"
+              placeholder="https://www.youtube.com/watch?v=..."
               className="font-mono text-xs"
             />
           </BlockField>
           <BlockField label="Keterangan" htmlFor={id("caption")} hint="Muncul kecil di bawah video. Boleh dikosongkan.">
             <BlockInput
               id={id("caption")}
+              maxLength={500}
               value={blok.caption ?? ""}
               onChange={(e) => onChange({ caption: e.target.value })}
               placeholder="Contoh: Profil sekolah 2026"
@@ -200,7 +211,7 @@ export function BlokForm({
         <BlockField label="Tinggi jarak" htmlFor={id("tinggi")} hint="Semakin besar, semakin longgar jarak antar bagian.">
           <BlockSelect
             id={id("tinggi")}
-            value={blok.tinggi ?? "sedang"}
+            value={blok.tinggi === "kecil" || blok.tinggi === "besar" ? blok.tinggi : "sedang"}
             onChange={(e) => onChange({ tinggi: e.target.value as Blok["tinggi"] })}
           >
             {SPACER_TINGGI_OPTIONS.map((o) => (

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { listGaleri } from "@/lib/galeri-server";
@@ -47,12 +48,12 @@ export async function Gallery() {
                   wide ? "aspect-[4/3]" : "aspect-[3/4]"
                 }`}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src={src}
                   alt={caption}
-                  className="h-full w-full object-cover opacity-80 transition-all duration-700 ease-out group-hover:scale-[1.05] group-hover:opacity-100"
-                  loading="lazy"
+                  fill
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw"
+                  className="object-cover opacity-80 transition-all duration-700 ease-out group-hover:scale-[1.05] group-hover:opacity-100"
                 />
                 <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-navy/90 to-transparent p-5 text-sm text-cream/90">
                   {caption}

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import {
   SCHOOL,
   accreditationLabel,
@@ -20,13 +21,13 @@ export function Hero() {
     >
       {/* Latar: foto blur hybrid + motif dekoratif */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src="/hero-school.webp"
           alt=""
-          className="hero-blur-bg h-full w-full object-cover"
-          loading="eager"
-          fetchPriority="high"
+          fill
+          priority
+          sizes="100vw"
+          className="hero-blur-bg object-cover"
         />
         {/* Heavy navy overlay — foto jadi tekstur samar */}
         <div className="absolute inset-0 bg-gradient-to-b from-navy/60 via-navy/50 to-navy/70" />
@@ -34,12 +35,13 @@ export function Hero() {
 
       <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col justify-center px-6 py-28">
         <div className="hero-rise flex items-center gap-5">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             src="/smasa.webp"
             alt="Logo SMA Negeri 1 Lumajang"
+            width={80}
+            height={80}
+            priority
             className="size-16 rounded-full object-contain ring-1 ring-cream/20 sm:size-20"
-            loading="eager"
           />
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-cream/70 sm:text-sm">
             {SCHOOL.location}

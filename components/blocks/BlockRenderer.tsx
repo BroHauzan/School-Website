@@ -6,6 +6,7 @@
  * membuat halaman publik gagal render (fallback: blok dilewati).
  */
 import type { Blok } from "@/lib/halaman-schema";
+import { isValidImageUrl } from "@/lib/image-url";
 import { Reveal } from "@/components/ui/Reveal";
 import { cn } from "@/lib/utils";
 
@@ -14,25 +15,34 @@ function teks(v: unknown): string {
   return typeof v === "string" ? v.trim() : "";
 }
 
-/** Hanya terima src gambar yang aman dimuat: path lokal atau https. */
+/**
+ * Hanya terima src gambar yang boleh disimpan: path lokal atau https dari
+ * host allowlist (`isValidImageUrl`) — sama dengan validasi server, supaya
+ * pratinjau tidak menampilkan URL yang pasti ditolak saat simpan.
+ */
 function srcGambar(v: unknown): string {
   const s = teks(v);
   if (!s) return "";
-  if (s.startsWith("/") && !s.startsWith("//")) return s;
-  return /^https:\/\//i.test(s) ? s : "";
+  return isValidImageUrl(s) ? s : "";
 }
 
-function daftarItem(v: unknown): string[] {
+function daftarItemGambar(v: unknown): string[] {
+  // Samakan dengan server: hanya URL gambar allowlist yang lolos, supaya
+  // pratinjau tidak menampilkan foto yang pasti ditolak saat simpan.
+  return Array.isArray(v) ? v.map((x) => srcGambar(x)).filter(Boolean) : [];
+}
+
+function daftarItemTeks(v: unknown): string[] {
   return Array.isArray(v) ? v.map((x) => teks(x)).filter(Boolean) : [];
 }
 
 /**
- * Hanya youtube / youtube-nocookie / vimeo. Selain itu TIDAK dirender
- * (mencegah admin menyematkan halaman pihak ketiga yang tak terduga).
+ * Ubah URL tonton biasa jadi URL embed yang bisa dipasang di <iframe>.
+ * Tanpa ini, tempelan `youtube.com/watch?v=...` (sesuai placeholder form)
+ * menghasilkan iframe rusak yang diblokir framing. Kembalikan "" bila
+ * host/path tidak didukung.
  */
-function srcVideoEmbed(v: unknown): string {
-  const s = teks(v);
-  if (!s) return "";
+function keEmbedVideo(s: string): string {
   let url: URL;
   try {
     url = new URL(s);
@@ -41,10 +51,48 @@ function srcVideoEmbed(v: unknown): string {
   }
   if (url.protocol !== "https:") return "";
   const host = url.hostname.toLowerCase().replace(/^www\./, "");
-  if (host === "youtube.com" || host === "m.youtube.com" || host === "youtube-nocookie.com") return s;
-  if (host === "youtu.be") return s;
-  if (host === "vimeo.com" || host === "player.vimeo.com") return s;
+  const path = url.pathname || "/";
+
+  if (host === "youtube.com" || host === "m.youtube.com" || host === "youtube-nocookie.com") {
+    // Sudah embed → pakai apa adanya.
+    if (path.startsWith("/embed/") && path.length > 7) return s;
+    const idTonton = url.searchParams.get("v");
+    if (path === "/watch" && idTonton) {
+      const t = url.searchParams.get("t") ?? url.searchParams.get("start");
+      return `https://www.youtube.com/embed/${idTonton}${t ? `?start=${encodeURIComponent(t)}` : ""}`;
+    }
+    let idShort: string | null = null;
+    if (path.startsWith("/shorts/")) idShort = path.slice("/shorts/".length).split("/")[0] || null;
+    else if (path.startsWith("/live/")) idShort = path.slice("/live/".length).split("/")[0] || null;
+    if (idShort) return `https://www.youtube.com/embed/${idShort}`;
+    return "";
+  }
+  if (host === "youtu.be") {
+    const id = path.slice(1).split("/")[0] ?? "";
+    if (!id) return "";
+    const t = url.searchParams.get("t");
+    return `https://www.youtube.com/embed/${id}${t ? `?start=${encodeURIComponent(t)}` : ""}`;
+  }
+  if (host === "vimeo.com") {
+    const id = path.slice(1).split("/")[0] ?? "";
+    if (!/^\d+$/.test(id)) return "";
+    return `https://player.vimeo.com/video/${id}`;
+  }
+  if (host === "player.vimeo.com") {
+    return path.startsWith("/video/") ? s : "";
+  }
   return "";
+}
+
+/**
+ * Hanya youtube (+nocookie/m) / vimeo. Selain itu TIDAK dirender
+ * (mencegah admin menyematkan halaman pihak ketiga yang tak terduga).
+ * Selaras dengan `validateHalaman` + `VIDEO_HOST_RE` di server.
+ */
+function srcVideoEmbed(v: unknown): string {
+  const s = teks(v);
+  if (!s) return "";
+  return keEmbedVideo(s);
 }
 
 /** Judul kecil di bawah gambar/video. */
@@ -77,8 +125,9 @@ function Gambar({ blok }: { blok: Blok }) {
   const src = srcGambar(blok.src);
   if (!src) return null;
   const caption = teks(blok.caption);
-  const rasio = RASIO_GAMBAR[teks(blok.varian)] ?? RASIO_GAMBAR.normal;
-  const wide = teks(blok.varian) !== "normal";
+  const varian = teks(blok.varian);
+  const rasio = varian === "wide" || varian === "full" ? RASIO_GAMBAR[varian] : RASIO_GAMBAR.normal;
+  const wide = varian === "wide" || varian === "full";
   return (
     <figure className={cn(wide && "sm:mx-auto")}>
       <div className="overflow-hidden rounded-lg border border-navy/10 bg-cream">
@@ -91,9 +140,10 @@ function Gambar({ blok }: { blok: Blok }) {
 }
 
 function Galeri({ blok }: { blok: Blok }) {
-  const items = daftarItem(blok.items);
+  const items = daftarItemGambar(blok.items);
   if (items.length === 0) return null;
-  const varian = teks(blok.varian) || "grid3";
+  const varianMentah = teks(blok.varian);
+  const varian = varianMentah === "grid2" || varianMentah === "carousel" ? varianMentah : "grid3";
 
   if (varian === "carousel") {
     return (
@@ -141,7 +191,8 @@ function Tombol({ blok }: { blok: Blok }) {
   const label = teks(blok.teks);
   const href = hrefAman(blok.href);
   if (!label || !href) return null;
-  const varian = teks(blok.varian) || "primary";
+  const varianMentah = teks(blok.varian);
+  const varian = varianMentah === "outline" || varianMentah === "soft" ? varianMentah : "primary";
   const cls = cn(
     "inline-flex rounded-full px-6 py-2.5 text-sm transition-colors",
     TOMBOL_VARIAN[varian] ?? TOMBOL_VARIAN.primary,
@@ -203,7 +254,7 @@ function Kutipan({ teks: t }: { teks: string }) {
 }
 
 function Daftar({ blok }: { blok: Blok }) {
-  const items = daftarItem(blok.items);
+  const items = daftarItemTeks(blok.items);
   if (items.length === 0) return null;
   return (
     <ul className="list-disc space-y-2 pl-6 text-muted">
@@ -252,7 +303,7 @@ function kunciBlok(blok: Blok, i: number): string {
  * Blok yang tidak punya isi valid tidak dirender sama sekali — supaya
  * dokumen rusak/kosong tidak meninggalkan celah `space-y-8` di halaman.
  */
-function blokTerisi(b: Blok): boolean {
+export function blokTerisi(b: Blok): boolean {
   switch (b.tipe) {
     case "paragraf":
     case "heading":
@@ -263,8 +314,9 @@ function blokTerisi(b: Blok): boolean {
     case "gambar":
       return srcGambar(b.src).length > 0;
     case "galeri":
+      return daftarItemGambar(b.items).length > 0;
     case "daftar":
-      return daftarItem(b.items).length > 0;
+      return daftarItemTeks(b.items).length > 0;
     case "video":
       return srcVideoEmbed(b.src).length > 0;
     case "divider":
@@ -275,7 +327,15 @@ function blokTerisi(b: Blok): boolean {
   }
 }
 
-export function BlockRenderer({ blok, className }: { blok: Blok[]; className?: string }) {
+export function BlockRenderer({
+  blok,
+  className,
+  tanpaAnimasi = false,
+}: {
+  blok: Blok[];
+  className?: string;
+  tanpaAnimasi?: boolean;
+}) {
   const daftar = (Array.isArray(blok) ? blok : []).filter(
     (b): b is Blok => Boolean(b) && typeof b.tipe === "string" && blokTerisi(b),
   );
@@ -286,11 +346,11 @@ export function BlockRenderer({ blok, className }: { blok: Blok[]; className?: s
       {daftar.map((b, i) => {
         const isi = <BlokIsi blok={b} />;
         // divider & spacer tidak dibungkus Reveal — tidak ada yang perlu di-reveal.
-        if (b.tipe === "divider" || b.tipe === "spacer") {
+        if (tanpaAnimasi || b.tipe === "divider" || b.tipe === "spacer") {
           return <div key={kunciBlok(b, i)}>{isi}</div>;
         }
         return (
-          <Reveal key={kunciBlok(b, i)} delay={i * 0.05}>
+          <Reveal key={kunciBlok(b, i)} delay={Math.min(i * 0.05, 0.3)}>
             {isi}
           </Reveal>
         );

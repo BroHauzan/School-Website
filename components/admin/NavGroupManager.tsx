@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Field, inputCls } from "./Field";
 import { slugifyHalaman, type NavGroupsItem } from "@/lib/halaman-schema";
@@ -17,7 +17,8 @@ function kunciUnik(label: string, taken: Set<string>): string {
 /**
  * Kelola kelompok menu (menu induk) di navbar publik: tambah, ubah nama,
  * urutkan, dan hapus. Halaman tidak pernah ikut terhapus — halaman yang
- * memakai grup terhapus kembali tampil sebagai halaman tanpa menu induk.
+ * memakai grup terhapus tetap tampil di navbar sebagai dropdown yatim
+ * dengan label otomatis dari groupKey (lihat buildPublicNav).
  */
 export function NavGroupManager({
   initial,
@@ -33,6 +34,8 @@ export function NavGroupManager({
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const busyRef = useRef(false);
+  const [hapusConfirm, setHapusConfirm] = useState<string | null>(null);
 
   const urut = useMemo(
     () => [...items].sort((a, b) => a.urutan - b.urutan || a.label.localeCompare(b.label)),
@@ -47,6 +50,8 @@ export function NavGroupManager({
   }
 
   async function simpan(next: NavGroupsItem[]): Promise<boolean> {
+    if (busyRef.current) return false;
+    busyRef.current = true;
     setBusy(true);
     setError(null);
     setNotice(null);
@@ -75,14 +80,20 @@ export function NavGroupManager({
       setError(msg);
       return false;
     } finally {
+      busyRef.current = false;
       setBusy(false);
     }
   }
 
   function tambah() {
+    if (busyRef.current) return;
     const label = newLabel.trim();
     if (label.length < 2) {
       setError("Nama menu minimal 2 karakter.");
+      return;
+    }
+    if (items.some((g) => g.label.trim().toLowerCase() === label.toLowerCase())) {
+      setError(`Menu “${label}” sudah ada. Pakai nama lain.`);
       return;
     }
     const taken = new Set(items.map((g) => g.groupKey));
@@ -93,6 +104,7 @@ export function NavGroupManager({
   }
 
   function geser(groupKey: string, arah: -1 | 1) {
+    if (busyRef.current) return;
     const list = [...urut];
     const i = list.findIndex((g) => g.groupKey === groupKey);
     const j = i + arah;
@@ -175,14 +187,50 @@ export function NavGroupManager({
                       Urutan #{g.urutan} · {dipakai > 0 ? `${dipakai} halaman memakainya` : "belum dipakai halaman"}
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => void simpan(items.filter((it) => it.groupKey !== g.groupKey))}
-                    className="rounded-full border border-red-900/25 px-4 py-1.5 text-xs font-medium text-red-900 transition-colors hover:border-red-900/60 disabled:opacity-40"
-                  >
-                    Hapus
-                  </button>
+                  <div className="flex flex-col items-end gap-2">
+                    {hapusConfirm === g.groupKey ? (
+                      <div role="alert" className="max-w-60 rounded-lg border border-amber-500/40 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900">
+                        <p className="font-semibold">
+                          Hapus menu “{g.label}”?
+                        </p>
+                        <p className="mt-1">
+                          {dipakai > 0
+                            ? `${dipakai} halaman memakainya — halaman tetap tampil di navbar dengan nama otomatis, label khusus hilang.`
+                            : "Menu ini belum dipakai halaman mana pun."}
+                        </p>
+                        <div className="mt-2 flex gap-2">
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() => {
+                              setHapusConfirm(null);
+                              void simpan(items.filter((it) => it.groupKey !== g.groupKey));
+                            }}
+                            className="rounded-full bg-red-900 px-3 py-1 text-xs font-semibold text-white disabled:opacity-50"
+                          >
+                            Ya, hapus
+                          </button>
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() => setHapusConfirm(null)}
+                            className="rounded-full border border-navy/20 px-3 py-1 text-xs text-navy disabled:opacity-50"
+                          >
+                            Batal
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => setHapusConfirm(g.groupKey)}
+                        className="rounded-full border border-red-900/25 px-4 py-1.5 text-xs font-medium text-red-900 transition-colors hover:border-red-900/60 disabled:opacity-40"
+                      >
+                        Hapus
+                      </button>
+                    )}
+                  </div>
                 </li>
               );
             })}
@@ -209,6 +257,7 @@ export function NavGroupManager({
                 type="button"
                 disabled={busy}
                 onClick={tambah}
+                data-tour="menu-simpan-grup"
                 className="rounded-full bg-navy px-6 py-2.5 text-sm font-semibold text-cream transition-colors hover:bg-navy-light disabled:opacity-50"
               >
                 {busy ? "Menyimpan…" : "Tambah menu"}

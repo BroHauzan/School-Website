@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { HalamanDoc, NavGroupsItem } from "@/lib/halaman-schema";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { DampakHapus } from "./DampakHapus";
 import { HalamanRiwayatDialog } from "./HalamanRiwayatDialog";
 
 /** Alamat yang ditampilkan ke admin — halaman bawaan pakai path aslinya. */
@@ -22,12 +23,28 @@ export function HalamanTable({
 }) {
   const router = useRouter();
   const [err, setErr] = useState<string | null>(null);
+  // Toast sukses setelah simpan (QA 4.1): form tulis ke sessionStorage lalu redirect ke sini.
+  const [notice, setNotice] = useState<string | null>(() => {
+    try {
+      if (typeof window === "undefined") return null;
+      const msg = window.sessionStorage.getItem("halaman-notice");
+      if (msg) window.sessionStorage.removeItem("halaman-notice");
+      return msg;
+    } catch {
+      return null;
+    }
+  });
+  // Halaman yang dialog hapusnya sedang terbuka: dipakai untuk memuat dampak.
+  const [dampakUntuk, setDampakUntuk] = useState<string | null>(null);
   const labelGrup = new Map(groups.map((g) => [g.groupKey, g.label]));
 
-  async function onDelete(id: string): Promise<boolean> {
+  // `paksa` dikirim hanya setelah admin melihat peringatan tautan di dialog,
+  // supaya server tahu ini keputusan sadar — bukan klik asal.
+  async function onDelete(id: string, paksa = false): Promise<boolean> {
     setErr(null);
     try {
-      const res = await fetch(`/api/halaman/${id}`, { method: "DELETE" });
+      const url = `/api/halaman/${id}${paksa ? "?paksa=1" : ""}`;
+      const res = await fetch(url, { method: "DELETE" });
       const json = (await res.json().catch(() => null)) as { error?: string } | null;
       if (!res.ok) throw new Error(json?.error ?? "Gagal menghapus.");
       router.refresh();
@@ -55,6 +72,12 @@ export function HalamanTable({
 
   return (
     <div className="overflow-hidden rounded-lg border border-navy/10 bg-paper">
+      {notice ? (
+        <p role="status" className="flex items-center justify-between gap-3 border-b border-emerald-600/20 bg-emerald-50 px-6 py-3 text-sm text-emerald-900">
+          <span>{notice}</span>
+          <button type="button" onClick={() => setNotice(null)} className="shrink-0 text-xs underline" aria-label="Tutup pemberitahuan">Tutup</button>
+        </p>
+      ) : null}
       {err ? (
         <p role="alert" className="border-b border-red-500/20 bg-red-50 px-6 py-3 text-sm text-red-900">
           {err}
@@ -105,17 +128,33 @@ export function HalamanTable({
                   Ubah
                 </Link>
                 {isSystem ? (
-                  <ConfirmDialog
-                    title="Kembalikan isi halaman bawaan?"
-                    desc={`Isi dan tambahan konten “${h.judul}” akan dikosongkan. Halaman ${alamatHalaman(h)} tetap bisa dibuka pengunjung seperti biasa, lalu bisa Anda isi ulang.`}
-                    confirm="Ya, kosongkan isi"
-                    onOk={() => onDelete(h.id)}
-                  />
+                  <>
+                    <button
+                      type="button"
+                      disabled
+                      aria-disabled="true"
+                      title="Halaman bawaan tidak bisa dihapus — alamatnya dipakai menu & tautan lain"
+                      className="cursor-not-allowed rounded-full border border-navy/10 px-4 py-1.5 text-xs font-medium text-muted opacity-40"
+                    >
+                      Hapus
+                    </button>
+                    <ConfirmDialog
+                      title="Kosongkan isi halaman bawaan?"
+                      desc={`Isi dan tambahan konten “${h.judul}” akan dikosongkan. Halaman ${alamatHalaman(h)} tetap bisa dibuka pengunjung seperti biasa, lalu bisa Anda isi ulang. Riwayat sebelumnya tetap tersimpan.`}
+                      confirm="Ya, kosongkan isi"
+                      triggerLabel="Kosongkan isi"
+                      triggerClassName="rounded-full border border-amber-600/40 px-4 py-1.5 text-xs font-medium text-amber-800 transition-colors hover:border-amber-600/70"
+                      onOk={() => onDelete(h.id)}
+                    />
+                  </>
                 ) : (
                   <ConfirmDialog
                     title="Hapus halaman?"
                     desc={`“${h.judul}” beserta seluruh isinya akan dihapus permanen dan alamat ${alamatHalaman(h)} tidak bisa lagi dibuka.`}
-                    onOk={() => onDelete(h.id)}
+                    extra={dampakUntuk === h.id ? <DampakHapus id={h.id} /> : null}
+                    confirm={dampakUntuk === h.id ? "Tetap hapus" : undefined}
+                    onOpenChange={(open) => setDampakUntuk(open ? h.id : null)}
+                    onOk={() => onDelete(h.id, true)}
                   />
                 )}
               </div>

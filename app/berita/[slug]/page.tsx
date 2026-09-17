@@ -6,6 +6,7 @@ import { PageHero } from "@/components/ui/PageHero";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionDivider } from "@/components/ui/SectionDivider";
 import { getBeritaBySlug, getBeritaLainDb, listBerita } from "@/lib/berita-server";
+import Image from "next/image";
 import Link from "next/link";
 
 export const revalidate = 300;
@@ -74,12 +75,14 @@ export default async function BeritaDetailPage({ params }: BeritaDetailProps) {
             </Link>
           </Reveal>
           <Reveal delay={0.1}>
-            <div className="mt-8 overflow-hidden rounded-lg border border-navy/10 bg-navy-light">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+            <div className="relative mt-8 aspect-[16/9] overflow-hidden rounded-lg border border-navy/10 bg-navy-light">
+              <Image
                 src={item.image}
                 alt={item.title}
-                className="aspect-[16/9] w-full object-cover"
+                fill
+                priority
+                sizes="(max-width: 768px) 100vw, 768px"
+                className="object-cover"
               />
             </div>
           </Reveal>
@@ -100,7 +103,7 @@ export default async function BeritaDetailPage({ params }: BeritaDetailProps) {
               <span className="rounded-full bg-navy px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-cream">
                 {item.tag}
               </span>
-              <span className="text-xs uppercase tracking-[0.22em] text-muted">{item.dateLabel}</span>
+              <span className="text-xs text-muted">{item.dateLabel}</span>
             </div>
           </Reveal>
         </article>
@@ -108,30 +111,18 @@ export default async function BeritaDetailPage({ params }: BeritaDetailProps) {
         {lainnya.length > 0 ? (
           <>
             <SectionDivider />
-
             <section className="mx-auto max-w-6xl px-6 py-16 lg:py-24">
               <Reveal>
-                <div className="flex flex-wrap items-end justify-between gap-6">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.28em] text-navy-muted">
-                      Lanjut Membaca
-                    </p>
-                    <h2 className="mt-4 font-display text-3xl tracking-[-0.01em] text-ink lg:text-4xl">
-                      Berita <i className="text-navy-muted">Lainnya</i>
-                    </h2>
-                  </div>
-                  <Link
-                    href="/berita"
-                    className="group inline-flex items-center gap-3 border-b border-navy/25 pb-1 text-sm font-medium uppercase tracking-[0.18em] text-navy transition-colors hover:border-navy"
-                  >
-                    Semua berita
-                    <span className="transition-transform duration-300 group-hover:translate-x-1">
-                      &rarr;
-                    </span>
-                  </Link>
+                <div className="max-w-xl">
+                  <p className="text-xs font-semibold uppercase tracking-[0.28em] text-navy-muted">
+                    Kabar Lainnya
+                  </p>
+                  <h2 className="mt-3 font-display text-3xl text-ink">
+                    Berita <i className="text-navy-muted">terkait</i>
+                  </h2>
                 </div>
               </Reveal>
-              <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {lainnya.map((related, i) => (
                   <Reveal key={related.slug} delay={0.08 * (i + 1)}>
                     <Link
@@ -139,12 +130,12 @@ export default async function BeritaDetailPage({ params }: BeritaDetailProps) {
                       className="group flex h-full flex-col overflow-hidden rounded-lg border border-navy/10 bg-paper transition-shadow hover:shadow-[0_24px_60px_-30px_rgba(9,18,43,0.35)]"
                     >
                       <div className="relative aspect-[16/9] overflow-hidden bg-navy-light">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
+                        <Image
                           src={related.image}
                           alt={related.title}
-                          className="h-full w-full object-cover opacity-90 transition-transform duration-700 group-hover:scale-[1.04]"
-                          loading="lazy"
+                          fill
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          className="object-cover opacity-90 transition-transform duration-700 group-hover:scale-[1.04]"
                         />
                       </div>
                       <div className="flex flex-1 flex-col p-6">

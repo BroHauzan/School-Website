@@ -20,7 +20,7 @@ export function PagePreview({ doc }: { doc: HalamanDoc }) {
         title={judul}
         description={deskripsi}
       />
-      <main id="konten-utama" className="mx-auto max-w-6xl px-6 py-28 lg:py-40">
+      <main id="konten-utama" className="mx-auto max-w-6xl px-6 py-16">
         {doc.blok.length > 0 ? (
           <BlockRenderer blok={doc.blok} />
         ) : (

@@ -4,16 +4,25 @@ import { getAdminDb, adminConfigured } from "./firebase-admin";
 import {
   HALAMAN_COLLECTION,
   MAX_RIWAYAT,
+  VIDEO_URL_RE,
   normalizeHalamanInput,
   sanitizeBlok,
   validateHalaman,
+  BLOK_LABEL,
   type Blok,
+  type BlokTipe,
   type HalamanDoc,
   type HalamanVersi,
   type NavGroupsDoc,
 } from "./halaman-schema";
 import { MANAGED_SYSTEM_PAGES, isReservedSlug, systemPageBySlug } from "./page-registry";
 import { getNavGroups } from "./nav-groups-server";
+import {
+  alamatPublik,
+  dampakMenu,
+  halamanYangMenaut,
+  type PeringatanHalaman,
+} from "./dampak-navigasi";
 import { isValidImageUrl } from "./image-url";
 import { clampStr, fallbackStr } from "./sanitize";
 
@@ -27,9 +36,6 @@ export { HALAMAN_COLLECTION, type HalamanDoc };
  */
 
 const MAX_LIST = 300;
-
-/** Host video yang boleh disematkan (dipakai renderer sebagai iframe). */
-const VIDEO_HOST_RE = /^https:\/\/(www\.)?(youtube\.com|youtu\.be|player\.vimeo\.com|vimeo\.com)\//;
 
 /** Judul & deskripsi hero bawaan tiap halaman sistem — seed tidak boleh mengubah desain. */
 const HERO_SEED: Record<string, { title: string; description: string }> = {
@@ -89,29 +95,38 @@ const HERO_SEED: Record<string, { title: string; description: string }> = {
 
 /** Buang blok yang sumbernya tidak lolos allowlist host (defensif untuk snapToDoc). */
 function buangBlokTidakValid(blok: Blok[]): Blok[] {
-  return blok.filter((b) => {
-    if (b.tipe === "gambar") return Boolean(b.src) && isValidImageUrl(b.src!);
-    if (b.tipe === "galeri") return (b.items ?? []).length > 0 && (b.items ?? []).every((s) => isValidImageUrl(s));
-    if (b.tipe === "video") return Boolean(b.src) && VIDEO_HOST_RE.test(b.src!);
-    return true;
-  });
+  return blok
+    .map((b) => {
+      if (b.tipe === "galeri") {
+        // Simpan foto yang valid saja — satu URL buruk tidak membuang seluruh galeri.
+        const baik = (b.items ?? []).filter((s) => isValidImageUrl(s));
+        return baik.length > 0 ? { ...b, items: baik } : null;
+      }
+      if (b.tipe === "gambar") return Boolean(b.src) && isValidImageUrl(b.src!) ? b : null;
+      if (b.tipe === "video") return Boolean(b.src) && VIDEO_URL_RE.test(b.src!) ? b : null;
+      return b;
+    })
+    .filter((b): b is Blok => b !== null);
 }
 
 /** Validasi sumber gambar/video blok di jalur API (schema dipakai klien, jadi bebas host). */
 function validateBlokSumber(blok: Blok[]): string | null {
-  for (const b of blok) {
+  for (let i = 0; i < blok.length; i++) {
+    const b = blok[i];
+    const label = BLOK_LABEL[b.tipe as BlokTipe] ?? b.tipe;
+    const nomor = `blok #${i + 1} (${label})`;
     if (b.tipe === "gambar" && b.src && !isValidImageUrl(b.src)) {
-      return "URL gambar pada blok tidak diizinkan. Gunakan hasil upload atau path lokal.";
+      return `URL gambar pada ${nomor} tidak diizinkan. Gunakan hasil upload atau path lokal.`;
     }
     if (b.tipe === "galeri") {
       for (const src of b.items ?? []) {
         if (!isValidImageUrl(src)) {
-          return "URL gambar pada galeri tidak diizinkan. Gunakan hasil upload atau path lokal.";
+          return `URL gambar pada galeri ${nomor} tidak diizinkan. Gunakan hasil upload atau path lokal.`;
         }
       }
     }
-    if (b.tipe === "video" && b.src && !VIDEO_HOST_RE.test(b.src)) {
-      return "Video hanya bisa disematkan dari YouTube atau Vimeo.";
+    if (b.tipe === "video" && b.src && !VIDEO_URL_RE.test(b.src)) {
+      return `Video pada ${nomor} hanya bisa disematkan dari YouTube atau Vimeo.`;
     }
   }
   return null;
@@ -397,12 +412,33 @@ export async function updateHalaman(id: string, input: Record<string, unknown>):
  * Halaman builder dihapus permanen. Halaman bawaan tidak boleh hilang dari
  * website (alamatnya dipakai menu & tautan lain): yang dikosongkan hanya isi
  * tambahannya, dan keadaan sebelumnya masuk riwayat agar bisa dipulihkan.
+ *
+ * Sebelum menghapus, cek dulu halaman lain yang blok CTA-nya menunjuk ke sini.
+ * Tanpa ini, tombol di halaman lain diam-diam jadi tautan mati (QA 2.1).
+ *
+ * @param paksa true = admin sudah membaca peringatan di dialog konfirmasi.
  */
-export async function deleteHalaman(id: string): Promise<HalamanDoc | null> {
+export async function deleteHalaman(
+  id: string,
+  opts?: { paksa?: boolean },
+): Promise<HalamanDoc | null> {
   const prev = await getHalamanById(id);
   if (!prev) return null;
 
   if (prev.systemPath === null) {
+    if (!opts?.paksa) {
+      const { ditautOleh } = await peringatanHalaman(id);
+      if (ditautOleh.length > 0) {
+        const daftar = [...new Set(ditautOleh.map((t) => `“${t.judul}”`))].join(", ");
+        throw Object.assign(
+          new Error(
+            `Halaman ini masih ditaut oleh tombol di ${daftar}. Menghapusnya akan membuat ` +
+              `tombol tersebut mengarah ke alamat kosong. Hapus dulu tombolnya, atau konfirmasi untuk lanjut.`,
+          ),
+          { status: 409, ditautOleh },
+        );
+      }
+    }
     await getAdminDb().collection(HALAMAN_COLLECTION).doc(id).delete();
     return prev;
   }
@@ -507,4 +543,87 @@ export async function getNavSource(): Promise<{ halaman: HalamanDoc[]; groups: N
     getNavGroups(),
   ]);
   return { halaman, groups };
+}
+
+// ── Preview token ────────────────────────────────────────────────────────────
+// Token bersifat short-lived dan satu halaman bisa punya satu token aktif saja.
+// Setiap permintaan preview baru mengganti token sebelumnya.
+
+const PREVIEW_TTL_MS = 30 * 60 * 1000;
+
+export type PreviewTokenResult = {
+  token: string;
+  expiresAt: string;
+};
+
+export async function createPreviewToken(
+  halamanId: string,
+  draftBlocks: Blok[],
+): Promise<PreviewTokenResult> {
+  if (!adminConfigured()) {
+    throw Object.assign(new Error("Firebase Admin belum dikonfigurasi."), { status: 500 });
+  }
+  const now = Date.now();
+  const token =
+    Math.random().toString(36).slice(2, 10) +
+    Math.random().toString(36).slice(2, 10);
+  const expiresAt = new Date(now + PREVIEW_TTL_MS).toISOString();
+
+  const docRef = getAdminDb().collection(HALAMAN_COLLECTION).doc(halamanId);
+  await docRef.update({
+    draftBlocks: sanitizeBlok(draftBlocks),
+    draftUpdatedAt: new Date(now).toISOString(),
+    previewToken: token,
+    previewTokenExpiresAt: expiresAt,
+  });
+
+  return { token, expiresAt };
+}
+
+export async function getHalamanForPreview(
+  slug: string,
+  token: string,
+): Promise<HalamanDoc | null> {
+  if (!adminConfigured()) return null;
+  const doc = await getHalamanBySlug(slug);
+  if (!doc) return null;
+  if (!doc.previewToken || doc.previewToken !== token) return null;
+  if (!doc.previewTokenExpiresAt || Date.now() > Date.parse(doc.previewTokenExpiresAt)) {
+    return null;
+  }
+  return {
+    ...doc,
+    blok: Array.isArray(doc.draftBlocks) && doc.draftBlocks.length > 0
+      ? doc.draftBlocks
+      : doc.blok,
+  };
+}
+
+// ── Peringatan dampak (QA 2.1 & 2.3) ────────────────────────────────────────
+// Sebelum admin menghapus/meng-unpublish halaman, cek apa yang rusak di
+// navbar publik atau tautan CTA halaman lain. Fungsi ini dipakai server
+// (blokir hapus) dan route GET dampak (dialog konfirmasi di admin).
+
+export type { PeringatanHalaman };
+
+/** Kerangka default supaya pembacaan di UI selalu konsisten. */
+const PERINGATAN_KOSONG: PeringatanHalaman = { menu: null, ditautOleh: [] };
+
+/**
+ * Ringkas dampak membuat halaman `id` tidak lagi tayang (hapus atau draft),
+ * supaya admin bisa dikonfirmasi sebelum navbar/tautan publik rusak.
+ */
+export async function peringatanHalaman(id: string): Promise<PeringatanHalaman> {
+  if (!adminConfigured()) return PERINGATAN_KOSONG;
+  const [semua, groups] = await Promise.all([
+    listHalaman({ includeDraft: true }),
+    getNavGroups(),
+  ]);
+  const dok = semua.find((h) => h.id === id);
+  if (!dok) return PERINGATAN_KOSONG;
+
+  const alamat = alamatPublik(dok);
+  const ditautOleh = halamanYangMenaut(alamat, semua, id);
+
+  return { menu: dampakMenu(semua, groups, id), ditautOleh };
 }

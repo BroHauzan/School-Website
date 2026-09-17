@@ -20,7 +20,7 @@ export default async function AdminTestimoniPage() {
       />
       <Reveal delay={0.15}>
         <div className="mt-8 flex justify-end">
-          <Link href="/admin/testimoni/baru" className="rounded-full bg-navy px-6 py-2.5 text-sm font-semibold text-cream transition-colors hover:bg-navy-light">
+          <Link href="/admin/testimoni/baru" data-tour="testimoni-baru" className="rounded-full bg-navy px-6 py-2.5 text-sm font-semibold text-cream transition-colors hover:bg-navy-light">
             + Tambah testimoni
           </Link>
         </div>

@@ -63,6 +63,7 @@ export default async function AdminHalamanPage() {
           </Link>
           <Link
             href="/admin/halaman/baru"
+            data-tour="halaman-baru"
             className="rounded-full bg-navy px-6 py-2.5 text-sm font-semibold text-cream transition-colors hover:bg-navy-light"
           >
             + Halaman baru

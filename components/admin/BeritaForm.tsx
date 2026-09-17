@@ -73,7 +73,7 @@ export function BeritaForm({ mode, id, initial }: { mode: "create" | "edit"; id?
         </Field>
         {error ? <p role="alert" className="rounded-lg border border-red-500/25 bg-red-50 px-4 py-3 text-sm text-red-900">{error}</p> : null}
         <div className="flex flex-wrap gap-3">
-          <button type="submit" disabled={busy || uploadBusy} className="rounded-full bg-navy px-6 py-2.5 text-sm font-semibold text-cream transition-colors hover:bg-navy-light disabled:opacity-50">
+          <button type="submit" data-tour="berita-publish" disabled={busy || uploadBusy} className="rounded-full bg-navy px-6 py-2.5 text-sm font-semibold text-cream transition-colors hover:bg-navy-light disabled:opacity-50">
             {uploadBusy ? "Tunggu upload selesai…" : busy ? "Menyimpan…" : mode === "create" ? "Terbitkan berita" : "Simpan perubahan"}
           </button>
           <button type="button" onClick={() => router.push("/admin")} className="rounded-full border border-navy/20 px-6 py-2.5 text-sm text-navy transition-colors hover:border-navy/50">
@@ -82,7 +82,7 @@ export function BeritaForm({ mode, id, initial }: { mode: "create" | "edit"; id?
         </div>
       </div>
       <aside className="space-y-6">
-        <div className="rounded-lg border border-navy/10 bg-paper p-6">
+        <div className="rounded-lg border border-navy/10 bg-paper p-6" data-tour="berita-gambar">
           <Field label="Gambar header">
             <ImageUploadField value={v.image} onChange={(url) => set("image", url)} onBusyChange={setUploadBusy} />
           </Field>

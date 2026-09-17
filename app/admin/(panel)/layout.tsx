@@ -1,27 +1,35 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { verifyAdminSession } from "@/lib/auth-server";
+import Image from "next/image";
+import { verifyAdminSession, deleteSessionCookie } from "@/lib/auth-server";
 import { adminConfigured } from "@/lib/firebase-admin";
 import { missingEnvReport } from "@/lib/env-server";
 import { PanelNav } from "@/components/admin/PanelNav";
+import { TutorialProvider } from "@/components/admin/tutorial/TutorialProvider";
+import { TutorialSpotlight } from "@/components/admin/tutorial/TutorialSpotlight";
 
 // Guard server-side: verifikasi session cookie kriptografis.
 // proxy.ts hanya cek keberadaan cookie; di sinilah akses benar-benar ditolak.
 export default async function PanelLayout({ children }: { children: React.ReactNode }) {
   const session = await verifyAdminSession();
-  if (!session) redirect("/admin/login");
+  if (!session) {
+    await deleteSessionCookie();
+    redirect("/admin/login");
+  }
 
   const ready = adminConfigured();
 
   return (
+    <TutorialProvider>
     <div className="min-h-screen bg-cream text-ink">
       <header className="sticky top-0 z-40 border-b border-cream/10 bg-navy text-cream">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-6">
-          <Link href="/admin" className="flex items-center gap-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:gap-4 sm:px-6">
+          <Link href="/admin" className="flex shrink-0 items-center gap-3">
+            <Image
               src="/smasa.webp"
               alt="Logo SMAN 1 Lumajang"
+              width={32}
+              height={32}
               className="size-8 rounded-full object-contain"
             />
             <span>
@@ -31,9 +39,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
               <span className="block font-display text-lg leading-tight">Panel Admin</span>
             </span>
           </Link>
-          <nav className="flex items-center gap-2 text-sm" aria-label="Menu panel admin">
-            <PanelNav />
-          </nav>
+          <PanelNav />
         </div>
       </header>
 
@@ -58,5 +64,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
         </p>
       </footer>
     </div>
+      <TutorialSpotlight />
+    </TutorialProvider>
   );
 }

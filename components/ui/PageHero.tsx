@@ -1,5 +1,6 @@
 type Breadcrumb = { href: string; label: string };
 import Link from "next/link";
+import Image from "next/image";
 
 interface PageHeroProps {
   breadcrumbs: Breadcrumb[];
@@ -11,12 +12,13 @@ export function PageHero({ breadcrumbs, title, description }: PageHeroProps) {
   return (
     <section className="relative overflow-hidden bg-navy text-cream">
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src="/hero-school.webp"
           alt=""
-          className="h-full w-full object-cover opacity-[0.15]"
-          loading="lazy"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover opacity-[0.15]"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-navy/90 via-navy/85 to-navy" />
       </div>

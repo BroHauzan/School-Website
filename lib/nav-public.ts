@@ -4,11 +4,18 @@ import type {
   NavItemPublic,
 } from "./halaman-schema";
 import { DEFAULT_NAV_GROUPS_ITEMS } from "./page-registry";
+import { labelWajar } from "./dampak-navigasi";
 
-/** Href publik: slug "" (beranda) → "/", selainnya "/<slug>". */
+/** Href publik: halaman bawaan → systemPath; builder → `/halaman/<slug>`; "" → "/". */
 function hrefOf(halaman: HalamanDoc): string {
+  const sys = typeof halaman.systemPath === "string" ? halaman.systemPath.trim() : "";
+  if (sys) {
+    if (sys === "/") return "/";
+    return sys.length > 1 ? sys.replace(/\/+$/, "") || "/" : sys;
+  }
   const slug = (halaman.slug ?? "").trim().replace(/^\/+/, "");
-  return slug ? `/${slug}` : "/";
+  if (!slug) return "/";
+  return `/halaman/${slug}`;
 }
 
 /** Label navbar: navLabel → judul → href. */
@@ -57,14 +64,19 @@ export function buildPublicNav(
 
   const items: NavItemPublic[] = [];
 
-  // Grup dari nav_groups, diurutkan menurut groups.items[].urutan.
-  const rawGroupItems = Array.isArray(groups?.items) && groups.items.length > 0
+  // Grup dari nav_groups. Array kosong yang disengaja dihormati (tanpa grup);
+  // fallback default hanya bila groups tidak berbentuk array (belum pernah diatur).
+  const rawGroupItems = Array.isArray(groups?.items)
     ? groups.items
     : DEFAULT_NAV_GROUPS_ITEMS;
 
   const groupItems = rawGroupItems
     .slice()
-    .sort((a, b) => urutanOf(a.urutan) - urutanOf(b.urutan));
+    .sort(
+      (a, b) =>
+        urutanOf(a.urutan) - urutanOf(b.urutan) ||
+        String(a.label ?? "").localeCompare(String(b.label ?? ""), "id"),
+    );
 
   const grouped = new Map<string, HalamanDoc[]>();
   for (const h of visible) {
@@ -100,7 +112,7 @@ export function buildPublicNav(
     const sortedMembers = members.slice().sort(byUrutan);
     if (sortedMembers.length === 0) continue;
     if (sortedMembers[0].collapsible !== false) {
-      const prettyLabel = key.charAt(0).toUpperCase() + key.slice(1);
+      const prettyLabel = labelWajar(key);
       items.push({
         label: prettyLabel,
         children: sortedMembers.map((h) => ({ href: hrefOf(h), label: labelOf(h) })),

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { OwlMotif } from "@/components/ui/OwlMotif";
@@ -43,13 +44,15 @@ export function About() {
           <div className="relative">
             <Reveal delay={0.1} className="relative z-10">
               <figure>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/hero-school.webp"
-                  alt="Gerbang depan SMA Negeri 1 Lumajang"
-                  className="aspect-[4/5] w-full rounded-lg object-cover"
-                  loading="lazy"
-                />
+                <div className="relative aspect-[4/5] w-full overflow-hidden rounded-lg">
+                  <Image
+                    src="/hero-school.webp"
+                    alt="Gerbang depan SMA Negeri 1 Lumajang"
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    className="object-cover"
+                  />
+                </div>
                 <figcaption className="mt-3 text-sm text-muted">
                   Gerbang {SCHOOL.name}, {SCHOOL.address.street}
                 </figcaption>

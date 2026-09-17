@@ -43,7 +43,9 @@ export async function DELETE(request: Request, { params }: Ctx) {
     assertSameOrigin(request);
     await requireAdmin();
     const { id } = await params;
-    const prev = await deleteHalaman(id);
+    // `?paksa=1` dikirim setelah admin membaca peringatan tautan di dialog.
+    const paksa = new URL(request.url).searchParams.get("paksa") === "1";
+    const prev = await deleteHalaman(id, { paksa });
     if (!prev) return NextResponse.json({ error: "Halaman tidak ditemukan." }, { status: 404 });
     revalidatePath("/", "layout");
     return NextResponse.json({ ok: true });

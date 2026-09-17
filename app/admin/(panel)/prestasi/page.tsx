@@ -20,7 +20,7 @@ export default async function AdminPrestasiPage() {
       />
       <Reveal delay={0.15}>
         <div className="mt-8 flex justify-end">
-          <Link href="/admin/prestasi/baru" className="rounded-full bg-navy px-6 py-2.5 text-sm font-semibold text-cream transition-colors hover:bg-navy-light">
+          <Link href="/admin/prestasi/baru" data-tour="prestasi-baru" className="rounded-full bg-navy px-6 py-2.5 text-sm font-semibold text-cream transition-colors hover:bg-navy-light">
             + Tambah prestasi
           </Link>
         </div>

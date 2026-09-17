@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   SCHOOL,
   SOCIALS,
@@ -39,12 +40,12 @@ export function Footer() {
         <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-[1.2fr_1fr_1fr_1fr] lg:grid-cols-[1.2fr_1fr_1fr_1fr_1fr_1fr]">
           <div className="flex flex-col items-start">
             <div className="flex items-center justify-start gap-3">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src="/smasa.webp"
                 alt="Logo SMAN 1 Lumajang"
+                width={40}
+                height={40}
                 className="size-10 shrink-0 rounded-full bg-cream object-cover"
-                loading="lazy"
               />
               <span className="font-display text-lg tracking-wide">
                 SMAN&thinsp;1&ensp;Lumajang

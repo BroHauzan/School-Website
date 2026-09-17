@@ -33,8 +33,14 @@ export default async function AdminDashboard() {
         </div>
       </Reveal>
       <Reveal delay={0.15}>
-        <div className="mt-8 flex justify-end">
-          <Link href="/admin/berita/baru" className="rounded-full bg-navy px-6 py-2.5 text-sm font-semibold text-cream transition-colors hover:bg-navy-light">
+        <div className="mt-8 flex flex-wrap justify-end gap-3">
+          <Link href="/admin/halaman" className="rounded-full border border-navy/20 px-6 py-2.5 text-sm text-navy transition-colors hover:border-navy/50">
+            Kelola halaman
+          </Link>
+          <Link href="/admin/halaman/baru" className="rounded-full border border-navy/20 px-6 py-2.5 text-sm text-navy transition-colors hover:border-navy/50">
+            + Halaman baru
+          </Link>
+          <Link href="/admin/berita/baru" data-tour="berita-tulis" className="rounded-full bg-navy px-6 py-2.5 text-sm font-semibold text-cream transition-colors hover:bg-navy-light">
             + Tulis berita
           </Link>
         </div>

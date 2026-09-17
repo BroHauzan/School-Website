@@ -51,6 +51,8 @@ Tanpa env, situs tetap jalan: halaman berita/galeri tampil kosong atau fallback 
 | `/fasilitas` | Fasilitas — coverflow slider (autoplay 5s, keyboard ←/→, swipe) |
 | `/eskul` | Ekstrakurikuler |
 | `/ppdb` | PPDB + countdown |
+| `/halaman/[slug]` | Halaman kustom dinamis hasil Page Builder (Block-based) |
+| `/pratinjau/[id]` | Pratinjau langsung halaman sebelum dipublikasikan |
 
 Akademik **bukan** rute terpisah — dirender sebagai section `Academic` di `/`.
 
@@ -62,6 +64,11 @@ Akademik **bukan** rute terpisah — dirender sebagai section `Academic` di `/`.
 | `/admin` | Dashboard + tabel berita (total / tayang / draft) |
 | `/admin/berita/baru` | Tulis berita |
 | `/admin/berita/[id]/ubah` | Ubah berita |
+| `/admin/halaman` | Dashboard + tabel halaman dinamis & halaman sistem |
+| `/admin/halaman/baru` | Buat halaman baru dengan Block Editor |
+| `/admin/halaman/[id]/ubah` | Ubah halaman kustom & kelola blok konten |
+| `/admin/menu` | Kelola kelompok menu (Nav Groups) & susunan navigasi |
+| `/admin/bantuan` | Panduan interaktif bertahap (Tutorial Spotlight Guide) |
 | `/admin/galeri` | Dashboard + tabel foto galeri |
 | `/admin/galeri/baru` | Tambah foto |
 | `/admin/galeri/[id]/ubah` | Ubah foto |
@@ -74,6 +81,11 @@ Akademik **bukan** rute terpisah — dirender sebagai section `Academic` di `/`.
 | `/api/berita` | `GET` daftar, `POST` buat |
 | `/api/berita/[id]` | `PATCH` ubah, `DELETE` hapus |
 | `/api/berita/upload` | `POST` gambar → Cloudinary folder `berita` |
+| `/api/halaman` | `GET` daftar halaman, `POST` buat halaman baru |
+| `/api/halaman/[id]` | `PATCH` ubah, `DELETE` hapus halaman |
+| `/api/halaman/[id]/dampak` | Analisis dampak navigasi sebelum hapus |
+| `/api/halaman/[id]/preview-token` | Token otorisasi pratinjau live |
+| `/api/nav-groups` | Kelola kelompok menu induk navigasi |
 | `/api/galeri`, `/api/galeri/[id]`, `/api/galeri/upload` | Sama seperti berita, folder `galeri` |
 | `/api/prestasi`, `/api/prestasi/[id]` | CRUD prestasi (tanpa upload — teks saja) |
 | `/api/testimoni`, `/api/testimoni/[id]` | CRUD testimoni (teks saja, revalidate `/`) |

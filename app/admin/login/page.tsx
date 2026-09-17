@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { LoginForm } from "@/components/admin/LoginForm";
 
 export const metadata = { title: "Masuk — Admin SMAN 1 Lumajang", robots: { index: false } };
@@ -10,10 +11,12 @@ export default function AdminLoginPage() {
       <div className="relative hidden overflow-hidden bg-navy text-cream lg:block">
         <div className="relative flex h-full flex-col justify-between p-12">
           <Link href="/" className="flex items-center gap-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src="/smasa.webp"
               alt="Logo SMAN 1 Lumajang"
+              width={40}
+              height={40}
+              priority
               className="size-10 rounded-full object-contain"
             />
             <span className="text-sm uppercase tracking-[0.24em]">SMAN 1 · Lumajang</span>

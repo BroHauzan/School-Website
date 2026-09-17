@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import { BlockField, BlockInput } from "./BlockField";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +25,7 @@ export function BlockItemList({
   hint?: string;
 }) {
   const penuh = typeof max === "number" && items.length >= max;
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const defaultLabel = mode === "galeri" ? "Foto galeri" : "Isi daftar";
   const defaultHint =
     mode === "galeri"
@@ -53,6 +55,9 @@ export function BlockItemList({
     next[i] = next[j];
     next[j] = tmp;
     onChange(next);
+    requestAnimationFrame(() => {
+      inputRefs.current[j]?.focus();
+    });
   }
 
   const btn =
@@ -88,6 +93,9 @@ export function BlockItemList({
 
             <div className="min-w-0 flex-1">
               <BlockInput
+                ref={(el) => {
+                  inputRefs.current[i] = el;
+                }}
                 value={item}
                 onChange={(e) => ubah(i, e.target.value)}
                 aria-label={`${mode === "galeri" ? "Alamat foto" : "Isi daftar"} ${i + 1}`}

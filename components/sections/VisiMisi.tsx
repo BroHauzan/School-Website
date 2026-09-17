@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { KEPALA_SEKOLAH } from "@/lib/school";
@@ -62,12 +63,12 @@ export function VisiMisi() {
 
         <Reveal className="mt-12" delay={0.2}>
           <div className="flex flex-col gap-6 rounded-lg border border-cream/10 bg-navy-muted p-8 md:flex-row md:items-center md:gap-8">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src="/smasa.webp"
               alt={QUOTE.author}
+              width={80}
+              height={80}
               className="size-20 shrink-0 rounded-full object-cover ring-2 ring-cream/20"
-              loading="lazy"
             />
             <div className="flex-1">
               <p className="font-display text-lg italic leading-relaxed text-cream/85">

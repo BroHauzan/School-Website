@@ -57,7 +57,9 @@ export async function getNavGroups(): Promise<NavGroupsDoc> {
     if (!snap.exists) return DEFAULT_NAV_GROUPS;
     const d = snap.data() as Record<string, unknown>;
     const normalized = normalizeItems(d.items);
-    return { items: normalized.length > 0 ? normalized : DEFAULT_NAV_GROUPS_ITEMS, updatedAt: String(d.updatedAt ?? "") };
+    // Dokumen ada = admin pernah mengatur (termasuk sengaja mengosongkan).
+    // Hormati [] agar "hapus semua grup" benar-benar bertahan, bukan bangkit jadi default.
+    return { items: normalized, updatedAt: String(d.updatedAt ?? "") };
   } catch (err) {
     console.error("[nav-groups] getNavGroups gagal:", err);
     return DEFAULT_NAV_GROUPS;

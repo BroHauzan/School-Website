@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import type { NavItemPublic } from "@/lib/halaman-schema";
+import Image from "next/image";
 import Link from "next/link";
 
 export function SiteHeaderClient({
@@ -56,10 +57,11 @@ export function SiteHeaderClient({
             overDark ? "text-cream" : "text-ink"
           )}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             src="/smasa.webp"
             alt="Logo SMA Negeri 1 Lumajang"
+            width={36}
+            height={36}
             className={cn(
               "size-9 rounded-full object-contain transition-all",
               overDark ? "ring-1 ring-cream/25" : "ring-1 ring-navy/15"

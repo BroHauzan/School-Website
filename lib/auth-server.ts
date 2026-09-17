@@ -52,6 +52,12 @@ export async function verifyAdminSession(): Promise<AdminSession | null> {
   }
 }
 
+export async function deleteSessionCookie(): Promise<void> {
+  const { cookies } = await import("next/headers");
+  const jar = await cookies();
+  jar.delete(SESSION_COOKIE);
+}
+
 export async function requireAdmin(): Promise<AdminSession> {
   const s = await verifyAdminSession();
   if (!s) throw Object.assign(new Error("Unauthorized"), { status: 401 });

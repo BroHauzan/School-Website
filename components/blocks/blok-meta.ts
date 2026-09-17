@@ -82,6 +82,7 @@ function ringkas(v: string, maks = 70): string {
 export function ringkasBlok(blok: Blok): string {
   const teks = (blok.teks ?? "").trim();
   const caption = (blok.caption ?? "").trim();
+  const href = (blok.href ?? "").trim();
   const items = Array.isArray(blok.items) ? blok.items.filter((s) => String(s ?? "").trim()) : [];
 
   switch (blok.tipe) {
@@ -90,7 +91,8 @@ export function ringkasBlok(blok: Blok): string {
     case "kutipan":
       return ringkas(teks) || "Belum diisi";
     case "tombol":
-      return ringkas(teks) || "Belum ada tulisan tombol";
+      if (!teks) return "Belum ada tulisan tombol";
+      return href ? `${ringkas(teks)} → ${href}` : `${ringkas(teks)} (belum ada tujuan)`;
     case "gambar":
       return ringkas(caption || (blok.src ?? "")) || "Belum ada foto";
     case "video":
@@ -100,7 +102,7 @@ export function ringkasBlok(blok: Blok): string {
     case "daftar":
       return items.length === 0 ? "Belum ada isi" : `${items.length} poin`;
     case "spacer":
-      return `Jarak ${blok.tinggi ?? "sedang"}`;
+      return `Jarak ${blok.tinggi === "kecil" || blok.tinggi === "besar" ? blok.tinggi : "sedang"}`;
     case "divider":
       return "Garis pemisah";
     default:
