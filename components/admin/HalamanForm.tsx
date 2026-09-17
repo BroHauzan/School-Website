@@ -8,6 +8,7 @@ import { BlockEditor } from "@/components/blocks/BlockEditor";
 import { HalamanLivePreview } from "./HalamanLivePreview";
 import {
   slugifyHalaman,
+  sanitizeBlok,
   validateHalaman,
   type Blok,
   type NavGroupsItem,
@@ -73,8 +74,7 @@ export function HalamanForm({
   const keluarDariNavbar =
     mode === "edit" &&
     (initial.published !== false || initial.showInNav !== false) &&
-    (v.published === false || v.showInNav === false) &&
-    initial.groupKey !== null;
+    (v.published === false || v.showInNav === false);
 
   const alamatForm = isSystem
     ? systemPath ?? "/"
@@ -134,8 +134,26 @@ export function HalamanForm({
     try {
       const raw = window.localStorage.getItem(draftKey);
       if (raw) {
-        setV(JSON.parse(raw));
-        setNotice("Draft yang belum tersimpan dipulihkan dari perangkat ini.");
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === "object") {
+          const sanitized: HalamanFormValue = {
+            judul: typeof parsed.judul === "string" ? parsed.judul : initial.judul,
+            slug: typeof parsed.slug === "string" ? parsed.slug : initial.slug,
+            navLabel: typeof parsed.navLabel === "string" ? parsed.navLabel : initial.navLabel,
+            groupKey: typeof parsed.groupKey === "string" || parsed.groupKey === null ? parsed.groupKey : initial.groupKey,
+            urutan: typeof parsed.urutan === "number" ? parsed.urutan : initial.urutan,
+            showInNav: typeof parsed.showInNav === "boolean" ? parsed.showInNav : initial.showInNav,
+            collapsible: typeof parsed.collapsible === "boolean" ? parsed.collapsible : initial.collapsible,
+            published: typeof parsed.published === "boolean" ? parsed.published : initial.published,
+            heroTitle: typeof parsed.heroTitle === "string" ? parsed.heroTitle : initial.heroTitle,
+            heroDescription: typeof parsed.heroDescription === "string" ? parsed.heroDescription : initial.heroDescription,
+            metaTitle: typeof parsed.metaTitle === "string" ? parsed.metaTitle : initial.metaTitle,
+            metaDescription: typeof parsed.metaDescription === "string" ? parsed.metaDescription : initial.metaDescription,
+            blok: Array.isArray(parsed.blok) ? sanitizeBlok(parsed.blok) : initial.blok,
+          };
+          setV(sanitized);
+          setNotice("Draft yang belum tersimpan dipulihkan dari perangkat ini.");
+        }
       }
     } catch {
       setError("Draft tersimpan rusak dan tidak bisa dipulihkan.");

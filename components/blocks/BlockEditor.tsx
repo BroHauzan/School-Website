@@ -123,8 +123,8 @@ const BlokCard = memo(function BlokCard({
                 if (e.key === "Enter") {
                   e.preventDefault();
                   const el = e.target as HTMLInputElement;
-                  const v = Number(el.value);
-                  if (!Number.isFinite(v) || v < 1 || v > total || v === i + 1) {
+                  const v = Math.round(Number(el.value));
+                  if (!Number.isFinite(v) || !Number.isInteger(v) || v < 1 || v > total || v === i + 1) {
                     el.value = String(i + 1);
                     return;
                   }
@@ -132,9 +132,10 @@ const BlokCard = memo(function BlokCard({
                 }
               }}
               onBlur={(e) => {
-                const v = Number(e.target.value);
-                if (!Number.isFinite(v) || v < 1 || v > total || v === i + 1) {
-                  if (e.target.value !== String(i + 1)) e.target.value = String(i + 1);
+                const el = e.target as HTMLInputElement;
+                const v = Math.round(Number(el.value));
+                if (!Number.isFinite(v) || !Number.isInteger(v) || v < 1 || v > total || v === i + 1) {
+                  if (el.value !== String(i + 1)) el.value = String(i + 1);
                   return;
                 }
                 onPindahKe(i, v);

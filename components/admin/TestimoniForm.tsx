@@ -62,7 +62,7 @@ export function TestimoniForm({ mode, id, initial }: { mode: "create" | "edit"; 
         <button type="submit" data-tour="testimoni-publish" disabled={busy} className="rounded-full bg-navy px-6 py-2.5 text-sm font-semibold text-cream transition-colors hover:bg-navy-light disabled:opacity-50">
           {busy ? "Menyimpan…" : mode === "create" ? "Tambah testimoni" : "Simpan perubahan"}
         </button>
-        <button type="button" onClick={() => router.push("/admin/testimoni")} className="rounded-full border border-navy/20 px-6 py-2.5 text-sm font-navy text-navy transition-colors hover:border-navy/50">
+        <button type="button" onClick={() => router.push("/admin/testimoni")} className="rounded-full border border-navy/20 px-6 py-2.5 text-sm font-medium text-navy transition-colors hover:border-navy/50">
           Batal
         </button>
       </div>

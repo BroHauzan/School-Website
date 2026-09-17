@@ -78,9 +78,11 @@ export function PanelNav() {
       <Link
         href="/admin/berita/baru"
         data-tour="berita-tulis"
-        className="hidden shrink-0 whitespace-nowrap rounded-full bg-cream px-4 py-2 font-medium text-navy transition-colors hover:bg-white sm:block"
+        aria-label="Tulis berita baru"
+        className="shrink-0 whitespace-nowrap rounded-full bg-cream px-3 py-2 font-medium text-navy transition-colors hover:bg-white sm:px-4"
       >
-        + Tulis berita
+        <span className="sm:hidden">+ Tulis</span>
+        <span className="hidden sm:inline">+ Tulis berita</span>
       </Link>
       <Link
         href={publicHref(pathname)}

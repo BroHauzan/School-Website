@@ -115,13 +115,6 @@ export const HalamanLivePreview = memo(function HalamanLivePreview({
   const crumb = navLabel.trim() || judul.trim() || "Halaman";
   const alamat = systemPath ?? `/halaman/${slugifyHalaman(slug || judul) || "alamat-halaman"}`;
 
-  const hanyaYangLengkap = daftar.filter(
-    (b): b is Blok => Boolean(b) && typeof b.tipe === "string" && !blokBelumLengkap(b),
-  );
-  const belumLengkap = daftar.filter(
-    (b) => !b || typeof b.tipe !== "string" || blokBelumLengkap(b),
-  );
-
   return (
     <div className="overflow-hidden rounded-lg border border-navy/10 bg-cream">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-navy/10 bg-paper px-4 py-2.5">
@@ -150,30 +143,26 @@ export const HalamanLivePreview = memo(function HalamanLivePreview({
             </p>
           ) : (
             <div className="space-y-6">
-              {hanyaYangLengkap.length > 0 ? <BlockRenderer blok={hanyaYangLengkap} tanpaAnimasi /> : null}
-              {belumLengkap.map((b, i) => {
-                if (!b || typeof b.tipe !== "string") {
+              {daftar.map((b, i) => {
+                if (!b || typeof b.tipe !== "string" || blokBelumLengkap(b)) {
+                  const label =
+                    b && typeof b.tipe === "string"
+                      ? (BLOK_LABEL as Record<string, string>)[b.tipe] ?? b.tipe
+                      : "Blok";
+                  const detail =
+                    b && typeof b.tipe === "string"
+                      ? fieldKurang(b)
+                      : "isi blok";
                   return (
                     <p
-                      key={`blok-takdikenal-${i}`}
+                      key={kunciLokal(b, i)}
                       className="rounded-lg border border-dashed border-amber-500/60 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-900"
                     >
-                      Blok: belum lengkap — isi blok, blok ini belum tampil di publik sampai
-                      dilengkapi.
+                      {label}: belum lengkap — {detail}, blok ini belum tampil di publik sampai dilengkapi.
                     </p>
                   );
                 }
-                const label =
-                  (BLOK_LABEL as Record<string, string>)[b.tipe] ?? b.tipe;
-                return (
-                  <p
-                    key={kunciLokal(b, i)}
-                    className="rounded-lg border border-dashed border-amber-500/60 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-900"
-                  >
-                    {label}: belum lengkap — {fieldKurang(b)}, blok ini belum tampil di
-                    publik sampai dilengkapi.
-                  </p>
-                );
+                return <BlockRenderer key={kunciLokal(b, i)} blok={[b]} tanpaAnimasi />;
               })}
             </div>
           )}

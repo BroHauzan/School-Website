@@ -20,7 +20,29 @@ export async function Berita() {
     date: d.dateLabel,
   }));
   const [lead, ...rest] = items;
-  if (!lead) return null;
+  if (!lead) {
+    return (
+      <section id="berita" className="bg-cream py-28 lg:py-40">
+        <div className="mx-auto max-w-6xl px-6">
+          <SectionHeading
+            eyebrow="Kabar Terkini"
+            title={
+              <>
+                Berita<i className="text-navy-muted">&nbsp;Sekolah</i>
+              </>
+            }
+            description="Aktivitas, capaian, dan pengumuman terbaru dari lingkungan SMA Negeri 1 Lumajang."
+          />
+          <div className="mt-12 rounded-lg border border-navy/10 bg-paper p-8 text-center sm:p-12">
+            <p className="font-display text-lg text-ink">Belum ada berita yang dipublikasikan</p>
+            <p className="mt-2 text-sm text-muted">
+              Kabar dan pengumuman terbaru akan segera ditampilkan di sini.
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="berita" className="bg-cream py-28 lg:py-40">

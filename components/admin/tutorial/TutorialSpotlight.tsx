@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTutorial } from "./TutorialProvider";
 import { getTutorial, type TutorialStep } from "./tutorials";
 
@@ -13,7 +13,8 @@ const PAD = 8;
 export function TutorialSpotlight() {
   const { activeId, stepIndex, totalSteps, next, prev, exit } = useTutorial();
   const [view, setView] = useState<View>({ key: "", rect: null, missing: false });
-  const [toast, setToast] = useState<{ visible: boolean; timeout: NodeJS.Timeout } | null>(null);
+  const [showToast, setShowToast] = useState(false);
+  const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const tutorial = activeId ? getTutorial(activeId) : undefined;
   const step = tutorial?.steps[stepIndex];
@@ -43,20 +44,19 @@ export function TutorialSpotlight() {
 
   // Auto-advance logic: tutorial otomatis lanjut setelah user berhasil klik target
   useEffect(() => {
-    if (!step?.autoAdvance || !view?.rect) return;
+    if (!step?.autoAdvance || !view.rect) return;
 
-    const delay = step.advanceDelay ?? 1500;
+    // Delay auto-advance untuk visual feedback
+    const delay = step.advanceDelay || 800;
     const timer = setTimeout(() => {
-      // Visual feedback dulu - ripple effect di target
-      if (step.selector) {
-        showSuccessFeedback(step.selector);
-        // Lanjut dopo ripple animation selesai
-        setTimeout(() => next(), 300);
+      // Hanya auto-advance jika belum di step terakhir
+      if (stepIndex < totalSteps - 1) {
+        next();
       }
     }, delay);
 
     return () => clearTimeout(timer);
-  }, [step?.id, next, step?.autoAdvance, view?.rect]);
+  }, [step?.id, next, step?.autoAdvance, view?.rect, stepIndex, totalSteps, step?.advanceDelay]);
 
   // Navigation guard - monitor klik di luar target area
   useEffect(() => {
@@ -77,9 +77,10 @@ export function TutorialSpotlight() {
       }
 
       // If user clicked elsewhere - show guidance toast
-      if (!toast && step?.autoAdvance) {
-        const timeout = setTimeout(() => setToast(null), 3000);
-        setToast({ visible: true, timeout });
+      if (step?.autoAdvance) {
+        if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+        setShowToast(true);
+        toastTimeoutRef.current = setTimeout(() => setShowToast(false), 3000);
 
         // Auto scroll back to current step
         setTimeout(() => {
@@ -92,14 +93,15 @@ export function TutorialSpotlight() {
     document.addEventListener("click", handleOutsideClick, true);
     return () => {
       document.removeEventListener("click", handleOutsideClick, true);
-      if (toast?.timeout) clearTimeout(toast.timeout);
+      if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
     };
-  }, [step?.selector, step?.autoAdvance, toast]);
+  }, [step?.selector, step?.autoAdvance]);
 
   // Dismiss toast on manual navigation
   const dismissToast = (action: 'click' | 'escape') => {
     if (action === 'click' || action === 'escape') {
-      setToast(null);
+      if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+      setShowToast(false);
     }
   };
 
@@ -131,8 +133,12 @@ export function TutorialSpotlight() {
         setView({ key, rect: null, missing: true });
         return;
       }
+      if (attempts >= 200 && step!.waitFor) {
+        setView({ key, rect: null, missing: true });
+        return;
+      }
       // Langkah dengan waitFor (mis. menunggu blok dibuat user) dipoll
-      // tanpa batas; overlay lama tetap tampil redup sampai target muncul.
+      // maks 200x (30 detik); overlay lama tetap tampil redup sampai target muncul.
       window.setTimeout(poll, 150);
     }
     poll();
@@ -279,7 +285,7 @@ export function TutorialSpotlight() {
       </div>
 
       {/* Toast navigation guidance */}
-      {toast?.visible && step?.autoAdvance ? (
+      {showToast && step?.autoAdvance ? (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[95]">
           <div className="rounded-full bg-navy text-cream px-4 py-2 shadow-lg flex items-center gap-2">
             <span className="text-sm">Tutorial tetap fokus ke step ini</span>

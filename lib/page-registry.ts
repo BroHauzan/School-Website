@@ -256,6 +256,7 @@ export const RESERVED_SLUGS: string[] = Array.from(
     "berita",
     "halaman",
     "pratinjau",
+    "preview",
     "login",
     ...SYSTEM_PAGES.map((p) => p.slug).filter((s) => s.length > 0 && !s.includes("/")),
   ]),

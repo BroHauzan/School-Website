@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { verifyAdminSession } from "@/lib/auth-server";
 import { getHalamanById } from "@/lib/halaman-server";
 import { PagePreview } from "@/components/admin/PagePreview";
@@ -18,16 +18,7 @@ export default async function PratinjauPage({ params }: { params: Promise<{ id: 
   const { id } = await params;
   const item = await getHalamanById(id);
   if (!item) {
-    return (
-      <div className="min-h-screen bg-cream">
-        <div className="mx-auto max-w-3xl px-6 py-28">
-          <h1 className="font-display text-4xl text-ink">Halaman tidak ditemukan</h1>
-          <p className="mt-4 text-base leading-relaxed text-muted">
-            Halaman yang ingin dipratinjau tidak ada atau sudah dihapus.
-          </p>
-        </div>
-      </div>
-    );
+    notFound();
   }
 
   return (

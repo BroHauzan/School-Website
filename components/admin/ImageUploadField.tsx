@@ -96,7 +96,14 @@ export function ImageUploadField({
           className="hidden"
           onChange={(e) => {
             const f = e.target.files?.[0];
-            if (f) void upload(f);
+            if (f) {
+              if (f.size > 5 * 1024 * 1024) {
+                setError("Ukuran file melebihi batas 5MB.");
+                e.target.value = "";
+                return;
+              }
+              void upload(f);
+            }
             e.target.value = "";
           }}
         />

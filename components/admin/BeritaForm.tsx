@@ -65,7 +65,7 @@ export function BeritaForm({ mode, id, initial }: { mode: "create" | "edit"; id?
             <input id="f-date" type="date" value={v.dateISO} onChange={(e) => set("dateISO", e.target.value)} required className={inputCls} />
           </Field>
         </div>
-        <Field label="Ringkasan" htmlFor="f-excerpt" hint="20–300 karakter.">
+        <Field label="Ringkasan" htmlFor="f-excerpt" hint={`${v.excerpt.length}/300 karakter (minimal 20).`}>
           <textarea id="f-excerpt" value={v.excerpt} onChange={(e) => set("excerpt", e.target.value)} rows={3} required className={inputCls} />
         </Field>
         <Field label="Isi berita" htmlFor="f-body" hint="Pisahkan paragraf dengan baris kosong.">

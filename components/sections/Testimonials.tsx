@@ -12,19 +12,19 @@ export type TestimonialItem = { quote: string; name: string; role: string };
  */
 const FALLBACK: TestimonialItem[] = [
   {
-    quote: "Temui aku di rasa sesalmu.",
+    quote: "SMASA membentuk karakter disiplin, wawasan berpikir kritis, dan persaudaraan yang tak ternilai bagi langkah masa depan saya.",
     name: "Arya Eka Maulidhani",
-    role: "Siswa, angkatan 64",
+    role: "Alumni SMASA",
   },
   {
-    quote: "Almamater yang pernah aku banggakan kala itu.",
+    quote: "Almamater kebanggaan dengan guru-guru yang berdedikasi tinggi dan lingkungan belajar yang senantiasa memotivasi untuk berprestasi.",
     name: "Awang Pramudya T.",
-    role: "Siswa, angkatan 64",
+    role: "Alumni SMASA",
   },
   {
-    quote: "Mencoba berpeluang sukses dan gagal daripada tidak mencoba sama sekali.",
+    quote: "Mencoba berpeluang sukses dan belajar dari kegagalan jauh lebih bermakna daripada tidak mencoba sama sekali.",
     name: "Novemas Heka Alfarizi",
-    role: "Siswa, angkatan 64",
+    role: "Alumni SMASA",
   },
 ];
 

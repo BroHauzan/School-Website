@@ -29,12 +29,18 @@ export function PageHero({ breadcrumbs, title, description }: PageHeroProps) {
             {breadcrumbs.map((crumb, i) => (
               <li key={crumb.href} className="flex items-center gap-2">
                 {i > 0 && <span aria-hidden="true">/</span>}
-                <Link
-                  href={crumb.href}
-                  className="transition-colors hover:text-cream/80"
-                >
-                  {crumb.label}
-                </Link>
+                {i === breadcrumbs.length - 1 ? (
+                  <span aria-current="page" className="font-medium text-cream">
+                    {crumb.label}
+                  </span>
+                ) : (
+                  <Link
+                    href={crumb.href}
+                    className="transition-colors hover:text-cream/80"
+                  >
+                    {crumb.label}
+                  </Link>
+                )}
               </li>
             ))}
           </ol>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { SiteHeader } from "@/components/ui/SiteHeader";
 import { PageHero } from "@/components/ui/PageHero";
 import { Footer } from "@/components/ui/Footer";
@@ -23,22 +24,7 @@ export default async function PreviewPage({ params, searchParams }: Ctx) {
   const { token } = await searchParams;
 
   if (!token) {
-    return (
-      <>
-        <SiteHeader solidOnTop />
-        <PageHero
-          breadcrumbs={[{ href: "/", label: "Beranda" }]}
-          title="Preview"
-          description="Tautan preview tidak valid."
-        />
-        <main className="bg-cream">
-          <section className="mx-auto max-w-6xl px-6 py-20">
-            <p>Preview link expired or invalid.</p>
-          </section>
-        </main>
-        <Footer />
-      </>
-    );
+    notFound();
   }
 
   let doc: HalamanDoc | null = null;
@@ -49,22 +35,7 @@ export default async function PreviewPage({ params, searchParams }: Ctx) {
   }
 
   if (!doc) {
-    return (
-      <>
-        <SiteHeader solidOnTop />
-        <PageHero
-          breadcrumbs={[{ href: "/", label: "Beranda" }]}
-          title="Preview"
-          description="Tautan preview tidak valid."
-        />
-        <main className="bg-cream">
-          <section className="mx-auto max-w-6xl px-6 py-20">
-            <p>Preview link expired or invalid.</p>
-          </section>
-        </main>
-        <Footer />
-      </>
-    );
+    notFound();
   }
 
   const blok = Array.isArray(doc.blok) ? doc.blok : [];

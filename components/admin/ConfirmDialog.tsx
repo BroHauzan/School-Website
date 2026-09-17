@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 
 export function ConfirmDialog({
   title,
@@ -25,17 +25,41 @@ export function ConfirmDialog({
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
 
   useEffect(() => {
     onOpenChange?.(open);
   }, [open, onOpenChange]);
 
-  // Fokus ke tombol aman saat dialog terbuka + tutup dengan Escape.
+  // Fokus ke tombol aman saat dialog terbuka + trap Tab + tutup dengan Escape.
   useEffect(() => {
     if (!open) return;
     cancelRef.current?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !busy) setOpen(false);
+      if (e.key === "Escape" && !busy) {
+        setOpen(false);
+        return;
+      }
+      if (e.key === "Tab" && dialogRef.current) {
+        const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -52,8 +76,15 @@ export function ConfirmDialog({
       </button>
       {open ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/60 p-6" onClick={() => !busy && setOpen(false)}>
-          <div role="dialog" aria-modal="true" aria-labelledby="confirm-title" className="w-full max-w-sm rounded-lg bg-paper p-6" onClick={(e) => e.stopPropagation()}>
-            <h3 id="confirm-title" className="font-display text-xl text-ink">{title}</h3>
+          <div
+            ref={dialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+            className="w-full max-w-sm rounded-lg bg-paper p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 id={titleId} className="font-display text-xl text-ink">{title}</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted">{desc}</p>
             {extra}
             {err ? <p role="alert" className="mt-3 rounded-lg border border-red-500/25 bg-red-50 px-3 py-2 text-sm text-red-900">{err}</p> : null}

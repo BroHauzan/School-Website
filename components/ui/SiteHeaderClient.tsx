@@ -225,9 +225,13 @@ export function SiteHeaderClient({
               {items.map((item) => {
                 if ("children" in item) {
                   const isOpen = openMobileAccordion === item.label;
+                  const accordionId = `mobile-accordion-${item.label.toLowerCase().replace(/\s+/g, "-")}`;
                   return (
                     <div key={item.label} className="border-b border-navy/5">
                       <button
+                        type="button"
+                        aria-expanded={isOpen}
+                        aria-controls={accordionId}
                         onClick={() => setOpenMobileAccordion(isOpen ? null : item.label)}
                         className="flex w-full items-center justify-between py-3 text-left text-base font-medium text-ink/85"
                       >
@@ -240,6 +244,7 @@ export function SiteHeaderClient({
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
+                          aria-hidden="true"
                         >
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
@@ -247,6 +252,7 @@ export function SiteHeaderClient({
                       <AnimatePresence>
                         {isOpen && (
                           <motion.div
+                            id={accordionId}
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: "auto", opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}

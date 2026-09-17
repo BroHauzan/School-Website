@@ -1,4 +1,5 @@
 import "server-only";
+import { randomBytes } from "crypto";
 import { type DocumentSnapshot, type Query } from "firebase-admin/firestore";
 import { getAdminDb, adminConfigured } from "./firebase-admin";
 import {
@@ -564,9 +565,7 @@ export async function createPreviewToken(
     throw Object.assign(new Error("Firebase Admin belum dikonfigurasi."), { status: 500 });
   }
   const now = Date.now();
-  const token =
-    Math.random().toString(36).slice(2, 10) +
-    Math.random().toString(36).slice(2, 10);
+  const token = randomBytes(32).toString("hex");
   const expiresAt = new Date(now + PREVIEW_TTL_MS).toISOString();
 
   const docRef = getAdminDb().collection(HALAMAN_COLLECTION).doc(halamanId);

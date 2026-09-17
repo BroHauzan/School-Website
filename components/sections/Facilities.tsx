@@ -209,6 +209,7 @@ export function Facilities() {
                   <article
                     key={f.title}
                     aria-hidden={!isActive}
+                    tabIndex={isActive ? undefined : -1}
                     onClick={() => {
                       if (!isActive) goTo(i);
                     }}
@@ -284,7 +285,7 @@ export function Facilities() {
                   type="button"
                   onClick={() => goTo(i)}
                   aria-label={`Ke fasilitas ${i + 1}: ${f.title}`}
-                  aria-current={i === active}
+                  aria-current={i === active ? "true" : undefined}
                   className="group flex size-9 items-center justify-center"
                 >
                   <span

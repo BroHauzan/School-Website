@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { Field, inputCls } from "./Field";
 import { PRESTASI_SCOPES, ddmmyyToISO, isoToDDMMYY, type PrestasiPeraih, type PrestasiScope } from "@/lib/prestasi-schema";
 
+type FormPeraih = PrestasiPeraih & { _key: string };
 export type PrestasiFormValue = {
   year: string; scope: PrestasiScope; title: string; dateISO: string;
   /** Satu entri per orang — tiap peraih bisa beda kelas. */
@@ -13,7 +14,20 @@ export type PrestasiFormValue = {
 
 export function PrestasiForm({ mode, id, initial }: { mode: "create" | "edit"; id?: string; initial: PrestasiFormValue }) {
   const router = useRouter();
-  const [v, setV] = useState(initial);
+  const [v, setV] = useState<{
+    year: string;
+    scope: PrestasiScope;
+    title: string;
+    dateISO: string;
+    peraih: FormPeraih[];
+    published: boolean;
+  }>(() => ({
+    ...initial,
+    peraih: (initial.peraih.length > 0 ? initial.peraih : [{ nama: "", kelas: "" }]).map((r, idx) => ({
+      ...r,
+      _key: `peraih_${idx}_${Math.random().toString(36).slice(2, 8)}`,
+    })),
+  }));
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   // Input tanggal tampil sebagai dd/mm/yy; disimpan/dikirim sebagai ISO.
@@ -23,7 +37,13 @@ export function PrestasiForm({ mode, id, initial }: { mode: "create" | "edit"; i
   const setPeraih = (i: number, k: keyof PrestasiPeraih, val: string) =>
     setV((p) => ({ ...p, peraih: p.peraih.map((r, j) => (j === i ? { ...r, [k]: val } : r)) }));
   const addPeraih = () =>
-    setV((p) => ({ ...p, peraih: [...p.peraih, { nama: "", kelas: "" }] }));
+    setV((p) => ({
+      ...p,
+      peraih: [
+        ...p.peraih,
+        { nama: "", kelas: "", _key: `peraih_${Date.now()}_${Math.random().toString(36).slice(2, 8)}` },
+      ],
+    }));
   const removePeraih = (i: number) =>
     setV((p) => ({ ...p, peraih: p.peraih.filter((_, j) => j !== i) }));
 
@@ -88,7 +108,7 @@ export function PrestasiForm({ mode, id, initial }: { mode: "create" | "edit"; i
           Peraih
         </legend>
         {v.peraih.map((r, i) => (
-          <div key={i} className="grid items-center gap-3 sm:grid-cols-[1fr_220px_auto]">
+          <div key={r._key} className="grid items-center gap-3 sm:grid-cols-[1fr_220px_auto]">
             <input
               aria-label={`Nama peraih ${i + 1}`}
               value={r.nama}

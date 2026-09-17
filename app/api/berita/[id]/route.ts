@@ -29,9 +29,13 @@ export async function PATCH(request: Request, { params }: Ctx) {
     const { id } = await params;
     const input = (await request.json().catch(() => null)) as Record<string, unknown> | null;
     if (!input) return NextResponse.json({ error: "Body JSON tidak valid." }, { status: 400 });
+    const prev = await getBeritaById(id);
     const updated = await updateBerita(id, input);
     revalidatePath("/berita");
     revalidatePath(`/berita/${updated.slug}`);
+    if (prev && prev.slug !== updated.slug) {
+      revalidatePath(`/berita/${prev.slug}`);
+    }
     revalidatePath("/", "layout");
     return NextResponse.json({ data: updated });
   } catch (e) {
@@ -49,6 +53,7 @@ export async function DELETE(request: Request, { params }: Ctx) {
     if (!prev) return NextResponse.json({ error: "Berita tidak ditemukan." }, { status: 404 });
     // Gambar Cloudinary (unsigned) tidak dihapus server — biarkan orphan, jangan gagalkan request.
     revalidatePath("/berita");
+    revalidatePath(`/berita/${prev.slug}`);
     revalidatePath("/", "layout");
     return NextResponse.json({ ok: true });
   } catch (e) {

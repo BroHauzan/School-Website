@@ -3,7 +3,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { verifyAdminSession, deleteSessionCookie } from "@/lib/auth-server";
 import { adminConfigured } from "@/lib/firebase-admin";
-import { missingEnvReport } from "@/lib/env-server";
 import { PanelNav } from "@/components/admin/PanelNav";
 import { TutorialProvider } from "@/components/admin/tutorial/TutorialProvider";
 import { TutorialSpotlight } from "@/components/admin/tutorial/TutorialSpotlight";
@@ -48,9 +47,8 @@ export default async function PanelLayout({ children }: { children: React.ReactN
           <div className="rounded-lg border border-amber-500/30 bg-amber-50 p-5 text-sm leading-relaxed text-amber-900">
             <p className="font-semibold">Firebase Admin belum dikonfigurasi.</p>
             <p className="mt-1">
-              Isi environment berikut di <code className="font-mono">.env.local</code> / Vercel:{" "}
-              <code className="font-mono">{missingEnvReport().join(", ") || "—"}</code>. Tanpa itu,
-              halaman berita tampil kosong dan artikel baru tidak bisa disimpan.
+              Konfigurasi server belum lengkap di environment (<code className="font-mono">.env.local</code> / Vercel).
+              Tanpa itu, halaman berita tampil kosong dan artikel baru tidak bisa disimpan.
             </p>
           </div>
         </div>

@@ -40,7 +40,8 @@ const HOST_STYLE: React.CSSProperties = {
 async function ensureFonts(node: HTMLElement): Promise<void> {
   const fonts = document.fonts;
   if (!fonts) return;
-  await fonts.ready;
+  const timeoutPromise = new Promise<void>((resolve) => setTimeout(resolve, 4000));
+  await Promise.race([fonts.ready, timeoutPromise]);
   const families = new Set<string>();
   for (const el of [node, ...Array.from(node.querySelectorAll("*"))]) {
     for (const raw of getComputedStyle(el).fontFamily.split(",")) {
@@ -57,7 +58,7 @@ async function ensureFonts(node: HTMLElement): Promise<void> {
       fonts.load(`400 1em "${family}"`).catch(() => null),
     ]),
   );
-  await fonts.ready;
+  await Promise.race([fonts.ready, timeoutPromise]);
 }
 
 
@@ -176,10 +177,13 @@ export function SharePrestasiButton({
           cacheBust: true,
         };
 
-        if (!cachedFontCss) cachedFontCss = getFontEmbedCSS(node);
+        if (!cachedFontCss) {
+          cachedFontCss = getFontEmbedCSS(node).catch(() => "");
+        }
         let out: Blob | null = null;
         try {
-          out = await toBlob(node, { ...opts, fontEmbedCSS: await cachedFontCss });
+          const fontCss = await cachedFontCss;
+          out = await toBlob(node, fontCss ? { ...opts, fontEmbedCSS: fontCss } : opts);
         } catch {
           // Cache basi / fetch font gagal -> coba sekali lagi tanpa cache.
           cachedFontCss = null;

@@ -99,6 +99,7 @@ function makeNoiseTile(size: number, seed: number, intensity: number): string {
 }
 
 /** Cache tile per intensitas — pembuatan canvas hanya sekali per nilai. */
+const MAX_NOISE_CACHE = 20;
 const noiseTileCache = new Map<string, string>();
 
 function noiseTileUrl(intensity: number): string {
@@ -106,6 +107,9 @@ function noiseTileUrl(intensity: number): string {
   const cached = noiseTileCache.get(key);
   if (cached !== undefined) return cached;
   const url = makeNoiseTile(NOISE_TILE_SIZE, NOISE_SEED, intensity);
+  if (noiseTileCache.size >= MAX_NOISE_CACHE) {
+    noiseTileCache.clear();
+  }
   noiseTileCache.set(key, url);
   return url;
 }

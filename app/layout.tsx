@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   title: "SMAN 1 Lumajang",
   description:
     "Situs resmi SMAN 1 Lumajang. Sekolah menengah atas unggulan di Lumajang, Jawa Timur, dengan identitas burung hantu sebagai simbol kebijaksanaan, ketajaman visi, dan semangat belajar tanpa batas.",
-  alternates: { canonical: undefined },
+  alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     url: SITE_URL,

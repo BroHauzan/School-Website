@@ -140,6 +140,9 @@ export function slugifyHalaman(input: string): string {
 }
 
 export function newBlokId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return `b_${crypto.randomUUID().replace(/-/g, "").slice(0, 12)}`;
+  }
   const rnd = Math.random().toString(36).slice(2, 8) || "b1";
   const time = Date.now().toString(36).slice(-4);
   return `b_${rnd}_${time}`;

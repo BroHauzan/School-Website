@@ -216,6 +216,12 @@ Sudah **live di produksi** di Vercel: [https://school-website-khaki-psi.vercel.a
 
 Bila API tiba-tiba 500, cek `/api/health` lebih dulu: health 200 tapi rute lain 500 = masalah dependency server (mis. `firebase-admin`); health ikut 500 = semua route handler rusak di level platform.
 
+## Catatan Audit & Hardening (September 2026)
+
+- **Aksesibilitas & Keamanan**: Focus trap pada modal konfirmasi (`ConfirmDialog`), standar ARIA pada menu accordion mobile & carousel fasilitas, token preview berbasis CSPRNG `crypto.randomBytes(32)`, proteksi integer pada penyusunan blok page builder.
+- **Performa & Caching**: Bounded memory cache pada generator kartu prestasi (`SharePrestasiCard` & `ShareCardBackground`), timeout guard font rendering, ISR revalidation 5 menit pada `/prestasi`, dan revalidasi cache slug lama saat berita diubah/dihapus.
+- **Admin UX**: Validasi schema saat pulihkan draft form halaman dari localStorage, live character counter ringkasan berita, tombol cepat tulis berita pada navigasi mobile, fallback empty state berita, serta penanganan error pratinjau dengan native `notFound()`.
+
 ## Dokumen terkait
 
 - `DESIGN_SYSTEM.md` — token warna, tipografi Playfair Display/Geist, pola card, anatomi halaman baru, checklist.

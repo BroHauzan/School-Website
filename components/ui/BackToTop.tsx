@@ -28,7 +28,12 @@ export function BackToTop() {
     <button
       type="button"
       aria-label="Kembali ke atas"
-      onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+      onClick={() => {
+        const prefersReduced =
+          typeof window !== "undefined" &&
+          window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        window.scrollTo({ top: 0, behavior: prefersReduced ? "auto" : "smooth" });
+      }}
       className={cn(
         "fixed bottom-6 right-6 z-40 flex size-11 items-center justify-center rounded-full bg-navy text-cream shadow-lg transition-all duration-300 hover:bg-navy-light hover:shadow-xl",
         show ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-4 opacity-0"

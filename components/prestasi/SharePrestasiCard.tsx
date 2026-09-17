@@ -105,8 +105,16 @@ function titleSize(title: string): number {
  * Cache lebar teks per `size|kata` — pengukuran diulang tiap render dan tiap
  * kandidat ukuran, jadi hasilnya disimpan.
  */
+const MAX_WORD_CACHE = 1000;
 const wordWidthCache = new Map<string, number>();
 let measureCtx: CanvasRenderingContext2D | null | undefined;
+
+function setWordWidthCache(key: string, val: number): void {
+  if (wordWidthCache.size >= MAX_WORD_CACHE) {
+    wordWidthCache.clear();
+  }
+  wordWidthCache.set(key, val);
+}
 
 /** Canvas 2D sekali pakai untuk mengukur lebar teks. `null` = tidak tersedia. */
 function getMeasureCtx(): CanvasRenderingContext2D | null {
@@ -159,7 +167,7 @@ function measureText(
     width = text.length * size * FALLBACK_CHAR_EM;
   }
 
-  wordWidthCache.set(key, width);
+  setWordWidthCache(key, width);
   return width;
 }
 
