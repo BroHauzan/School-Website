@@ -77,16 +77,26 @@ Sebelum commit, selalu periksa apakah ada dokumentasi yang perlu diperbarui:
 
 ---
 
-## 5. Push ke GitHub
+## 5. Push & Sinkronisasi ke GitHub (Auto-Deploy Vercel)
 
-1. **Cek Branch Aktif:**
-   ```bash
-   git branch --show-current
-   ```
-2. **Kirim Perubahan ke Remote Repository:**
-   ```bash
-   git push origin <branch>
-   ```
-3. **Konfirmasi:**
-   - Pastikan output terminal menunjukkan proses push berhasil tanpa conflict atau error.
-   - Laporkan ringkasan perubahan dan commit hash kepada pengguna.
+1. **Pastikan Kode Masuk ke Branch Produksi (`main`):**
+   - Vercel terhubung ke branch `main`. Agar perubahan langsung tayang (*live*), perubahan harus di-push ke `main`.
+   - Jika saat ini berada di branch fitur/staging:
+     ```bash
+     CURRENT=$(git branch --show-current)
+     git push origin $CURRENT
+     git checkout main
+     git pull origin main
+     git merge $CURRENT --no-edit
+     git push origin main
+     git checkout $CURRENT
+     ```
+   - Jika sudah langsung di branch `main`:
+     ```bash
+     git pull origin main
+     git push origin main
+     ```
+2. **Konfirmasi:**
+   - Pastikan output terminal menunjukkan proses push ke `main` berhasil.
+   - Vercel akan langsung mendeteksi push ke `main` dan menjalankan auto-deploy ke domain produksi.
+   - Laporkan ringkasan perubahan dan status deploy kepada pengguna.
