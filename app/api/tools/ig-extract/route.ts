@@ -32,7 +32,20 @@ export async function POST(request: Request) {
       );
     }
 
-    const ogImageUrl = await extractInstagramThumbnail(url);
+    let ogImageUrl: string | null = null;
+    try {
+      ogImageUrl = await extractInstagramThumbnail(url);
+    } catch (extractErr) {
+      const message =
+        extractErr instanceof Error
+          ? extractErr.message
+          : "Gagal mengekstrak thumbnail dari postingan Instagram tersebut.";
+      return NextResponse.json(
+        { success: false, message },
+        { status: 422 }
+      );
+    }
+
     if (!ogImageUrl) {
       return NextResponse.json(
         {

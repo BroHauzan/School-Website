@@ -171,23 +171,29 @@ function decodeHtmlEntities(str: string): string {
 }
 
 /**
- * Ekstraksi URL thumbnail asli (og:image) dari postingan Instagram menggunakan bot crawler UA.
- * Mengutamakan crawler yang tidak dipaksa crop 1:1 oleh Instagram (seperti Slackbot / Skype).
+ * Ekstraksi URL thumbnail asli (og:image) dari postingan Instagram dengan strategi multi-fallback:
+ * 1. Scraping HTML dengan User-Agent bergantian (Slackbot, facebookexternalhit, Twitterbot, WhatsApp).
+ * 2. Fallback ke endpoint resmi Instagram oEmbed jika scraping HTML gagal atau terblokir.
+ * 3. Timeout handling per attempt dan pesan error komprehensif jika seluruh fallback gagal.
  */
 export async function extractInstagramThumbnail(postUrl: string): Promise<string | null> {
   const cleanUrl = postUrl.trim().split("?")[0] || "";
   const normalizedUrl = cleanUrl.endsWith("/") ? cleanUrl : `${cleanUrl}/`;
-  
-  // Slackbot dan Skype mendapatkan og:image dengan aspek rasio asli dari Instagram,
-  // sedangkan Facebook dan Twitter bot sering kali mendapatkan thumbnail yang di-crop 1:1 (stp=c...).
+
+  // Daftar User-Agent bergantian:
+  // Slackbot diprioritaskan karena mengembalikan rasio asli (uncropped 4:5/landscape),
+  // diikuti bot sosial resmi Facebook, Twitter, dan WhatsApp.
   const userAgents = [
-    "Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)",
-    "SkypeUriPreview Preview/0.5",
-    "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
-    "Twitterbot/1.0",
+    { name: "Slackbot", ua: "Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)" },
+    { name: "Facebookbot", ua: "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)" },
+    { name: "Twitterbot", ua: "Twitterbot/1.0" },
+    { name: "WhatsApp", ua: "WhatsApp/2.21.12.21 A" },
   ];
 
-  for (const ua of userAgents) {
+  const attemptErrors: string[] = [];
+
+  // Strategi 1: Scraping HTML dengan User-Agent bergantian
+  for (const { name, ua } of userAgents) {
     try {
       const res = await fetch(normalizedUrl, {
         headers: {
@@ -196,10 +202,13 @@ export async function extractInstagramThumbnail(postUrl: string): Promise<string
           "Accept-Language": "en-US,en;q=0.9",
         },
         redirect: "follow",
-        signal: AbortSignal.timeout(10000),
+        signal: AbortSignal.timeout(6000), // Timeout 6 detik per attempt
       });
 
-      if (!res.ok) continue;
+      if (!res.ok) {
+        attemptErrors.push(`${name}: HTTP ${res.status}`);
+        continue;
+      }
 
       const html = await res.text();
 
@@ -251,11 +260,65 @@ export async function extractInstagramThumbnail(postUrl: string): Promise<string
           return decoded;
         }
       }
+
+      attemptErrors.push(`${name}: Meta og:image / twitter:image tidak ditemukan`);
     } catch (err) {
-      console.warn(`[instagram] Gagal fetch og:image dengan UA ${ua}:`, err);
+      const isTimeout = err instanceof Error && (err.name === "TimeoutError" || err.name === "AbortError");
+      const msg = isTimeout ? "Timeout (6s)" : err instanceof Error ? err.message : String(err);
+      attemptErrors.push(`${name}: ${msg}`);
+      console.warn(`[instagram] Percobaan dengan UA ${name} gagal:`, msg);
     }
   }
 
-  return null;
+  // Strategi 2: Fallback ke endpoint resmi Instagram oEmbed
+  try {
+    const oembedUrl = `https://api.instagram.com/oembed/?url=${encodeURIComponent(normalizedUrl)}`;
+    const res = await fetch(oembedUrl, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        Accept: "application/json, text/html, */*",
+      },
+      redirect: "follow",
+      signal: AbortSignal.timeout(6000),
+    });
+
+    if (res.ok) {
+      const rawText = await res.text();
+      try {
+        const json = JSON.parse(rawText) as { thumbnail_url?: string; url?: string };
+        if (json?.thumbnail_url && /^https?:\/\//i.test(json.thumbnail_url)) {
+          return decodeHtmlEntities(json.thumbnail_url);
+        }
+      } catch {
+        // Jika respons bukan JSON murni, ekstrak thumbnail_url atau scontent dari teks HTML
+        const jsonMatch = rawText.match(/"thumbnail_url"\s*:\s*"([^"]+)"/i);
+        if (jsonMatch && jsonMatch[1]) {
+          const decoded = decodeHtmlEntities(
+            jsonMatch[1].replace(/\\u0026/g, "&").replaceAll("\\/", "/")
+          );
+          if (/^https?:\/\//i.test(decoded)) {
+            return decoded;
+          }
+        }
+
+        const scontentMatch = rawText.match(/https:\/\/[^"'<>\s]*cdninstagram\.com\/v\/[^"'<>\s]+/i);
+        if (scontentMatch && scontentMatch[0]) {
+          return decodeHtmlEntities(scontentMatch[0].replace(/\\u0026/g, "&"));
+        }
+      }
+      attemptErrors.push("oEmbed: Field thumbnail_url tidak ditemukan pada respons");
+    } else {
+      attemptErrors.push(`oEmbed: HTTP ${res.status}`);
+    }
+  } catch (oembedErr) {
+    const isTimeout = oembedErr instanceof Error && (oembedErr.name === "TimeoutError" || oembedErr.name === "AbortError");
+    const msg = isTimeout ? "Timeout (6s)" : oembedErr instanceof Error ? oembedErr.message : String(oembedErr);
+    attemptErrors.push(`oEmbed: ${msg}`);
+    console.warn("[instagram] Percobaan oEmbed gagal:", msg);
+  }
+
+  // Jika seluruh percobaan gagal, lempar error dengan pesan diagnostik yang lengkap
+  const detail = attemptErrors.length > 0 ? ` [${attemptErrors.join(", ")}]` : "";
+  throw new Error(`Gagal mengekstrak thumbnail dari postingan Instagram${detail}. Pastikan postingan bersifat publik.`);
 }
 
