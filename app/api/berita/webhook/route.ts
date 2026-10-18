@@ -3,6 +3,8 @@ import { revalidatePath } from "next/cache";
 import crypto from "node:crypto";
 import { beritaInputSchema } from "@/lib/berita-schema";
 import { tambahBerita } from "@/lib/berita-server";
+import { uploadUrlToCloudinary } from "@/lib/cloudinary";
+import { isValidImageUrl } from "@/lib/image-url";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -54,8 +56,39 @@ export async function POST(request: Request) {
       );
     }
 
-    // 3. Set default status ke "draft" jika tidak disertakan dalam body payload
     const bodyRecord = rawBody as Record<string, unknown>;
+
+    // 3. Auto re-upload image ke Cloudinary jika berupa remote URL (https://...)
+    let finalImage =
+      typeof bodyRecord.image === "string" ? bodyRecord.image.trim() : "";
+
+    if (finalImage && /^https?:\/\//i.test(finalImage)) {
+      const isAlreadySmasaCloudinary =
+        finalImage.includes("res.cloudinary.com") &&
+        finalImage.includes("smasa/berita");
+
+      if (!isAlreadySmasaCloudinary) {
+        try {
+          const uploadResult = await uploadUrlToCloudinary(finalImage, "smasa/berita");
+          if (uploadResult?.secure_url) {
+            finalImage = uploadResult.secure_url;
+          }
+        } catch (uploadError) {
+          console.warn(
+            "[webhook/berita] Upload gambar ke Cloudinary gagal, mencoba fallback:",
+            uploadError
+          );
+          // Fallback: gunakan URL aslinya jika lolos validasi, atau fallback ke default hero
+          if (!isValidImageUrl(finalImage)) {
+            finalImage = "/hero-school.webp";
+          }
+        }
+      }
+    } else if (!finalImage || !isValidImageUrl(finalImage)) {
+      finalImage = "/hero-school.webp";
+    }
+
+    // 4. Set default status ke "draft" jika tidak disertakan dalam body payload
     const status =
       bodyRecord.status !== undefined
         ? String(bodyRecord.status)
@@ -72,6 +105,7 @@ export async function POST(request: Request) {
 
     const payload: Record<string, unknown> = {
       ...bodyRecord,
+      image: finalImage,
       status,
       published,
     };
