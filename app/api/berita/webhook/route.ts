@@ -3,7 +3,11 @@ import { revalidatePath } from "next/cache";
 import crypto from "node:crypto";
 import { beritaInputSchema } from "@/lib/berita-schema";
 import { tambahBerita } from "@/lib/berita-server";
-import { uploadUrlToCloudinary } from "@/lib/cloudinary";
+import {
+  uploadUrlToCloudinary,
+  isInstagramPostUrl,
+  extractInstagramThumbnail,
+} from "@/lib/cloudinary";
 import { isValidImageUrl } from "@/lib/image-url";
 
 export const runtime = "nodejs";
@@ -58,11 +62,31 @@ export async function POST(request: Request) {
 
     const bodyRecord = rawBody as Record<string, unknown>;
 
-    // 3. Auto re-upload image ke Cloudinary jika berupa remote URL (https://...)
+    // 3. Auto re-upload image ke Cloudinary / auto-extract thumbnail Instagram
     let finalImage =
       typeof bodyRecord.image === "string" ? bodyRecord.image.trim() : "";
 
-    if (finalImage && /^https?:\/\//i.test(finalImage)) {
+    if (finalImage && isInstagramPostUrl(finalImage)) {
+      // 3a. Deteksi link postingan Instagram -> ekstrak og:image lalu upload ke Cloudinary
+      try {
+        const ogImageUrl = await extractInstagramThumbnail(finalImage);
+        if (ogImageUrl) {
+          const uploadResult = await uploadUrlToCloudinary(ogImageUrl, "smasa/berita");
+          if (uploadResult?.secure_url) {
+            finalImage = uploadResult.secure_url;
+          } else {
+            finalImage = "/hero-school.webp";
+          }
+        } else {
+          console.warn("[webhook/berita] Gagal mengekstrak thumbnail Instagram, fallback ke default hero");
+          finalImage = "/hero-school.webp";
+        }
+      } catch (igError) {
+        console.warn("[webhook/berita] Error proses Instagram thumbnail:", igError);
+        finalImage = "/hero-school.webp";
+      }
+    } else if (finalImage && /^https?:\/\//i.test(finalImage)) {
+      // 3b. Remote image umum -> upload langsung ke Cloudinary jika belum di smasa/berita
       const isAlreadySmasaCloudinary =
         finalImage.includes("res.cloudinary.com") &&
         finalImage.includes("smasa/berita");

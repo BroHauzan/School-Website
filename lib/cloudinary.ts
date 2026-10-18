@@ -125,3 +125,69 @@ export async function uploadUrlToCloudinary(
 export const uploadFromUrl = uploadUrlToCloudinary;
 export const uploadImageFromUrl = uploadUrlToCloudinary;
 
+/**
+ * Cek apakah URL merupakan tautan postingan Instagram (post, reel, atau tv).
+ */
+export function isInstagramPostUrl(url: string): boolean {
+  if (!url || typeof url !== "string") return false;
+  return /https?:\/\/(?:www\.)?instagram\.com\/(?:p|reel|tv)\/[a-zA-Z0-9_-]+/i.test(url.trim());
+}
+
+/**
+ * Decode entitas HTML umum dalam URL yang diekstrak dari meta tag.
+ */
+function decodeHtmlEntities(str: string): string {
+  return str
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
+}
+
+/**
+ * Ekstraksi URL thumbnail asli (og:image) dari postingan Instagram menggunakan bot crawler UA.
+ */
+export async function extractInstagramThumbnail(postUrl: string): Promise<string | null> {
+  const cleanUrl = postUrl.trim().split("?")[0] || "";
+  const normalizedUrl = cleanUrl.endsWith("/") ? cleanUrl : `${cleanUrl}/`;
+  const userAgents = [
+    "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
+    "Twitterbot/1.0",
+  ];
+
+  for (const ua of userAgents) {
+    try {
+      const res = await fetch(normalizedUrl, {
+        headers: {
+          "User-Agent": ua,
+          Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+          "Accept-Language": "en-US,en;q=0.9",
+        },
+        redirect: "follow",
+        signal: AbortSignal.timeout(10000),
+      });
+
+      if (!res.ok) continue;
+
+      const html = await res.text();
+      const match =
+        html.match(/<meta\s+[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i) ||
+        html.match(/<meta\s+[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["']/i) ||
+        html.match(/<meta\s+[^>]*name=["']twitter:image["'][^>]*content=["']([^"']+)["']/i) ||
+        html.match(/<meta\s+[^>]*content=["']([^"']+)["'][^>]*name=["']twitter:image["']/i);
+
+      if (match && match[1]) {
+        const decoded = decodeHtmlEntities(match[1]);
+        if (/^https?:\/\//i.test(decoded)) {
+          return decoded;
+        }
+      }
+    } catch (err) {
+      console.warn(`[instagram] Gagal fetch og:image dengan UA ${ua}:`, err);
+    }
+  }
+
+  return null;
+}
+

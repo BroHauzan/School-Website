@@ -90,8 +90,10 @@ Akademik **bukan** rute terpisah — dirender sebagai section `Academic` di `/`.
 | `/api/galeri`, `/api/galeri/[id]`, `/api/galeri/upload` | Sama seperti berita, folder `galeri` |
 | `/api/prestasi`, `/api/prestasi/[id]` | CRUD prestasi (tanpa upload — teks saja) |
 | `/api/testimoni`, `/api/testimoni/[id]` | CRUD testimoni (teks saja, revalidate `/`) |
+| `/api/tools/ig-extract` | `POST` ekstrak og:image Instagram & upload ke Cloudinary `smasa/berita` |
 | `/api/auth/session` | `POST` mint session cookie, `DELETE` logout + revokasi token |
 | `/api/health` | Probe tanpa dependency — pemisah error platform vs error library |
+| `/tools/ig-helper` | Halaman utilitas internal ekstraksi thumbnail Instagram |
 
 Semua halaman admin dan seluruh API route `force-dynamic`. Setiap tulis data memanggil `revalidatePath` (`/berita`, `/berita/[slug]`, dan layout `/`) supaya konten baru tayang tanpa rebuild.
 
