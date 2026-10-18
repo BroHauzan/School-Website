@@ -13,7 +13,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
   const session = await verifyAdminSession();
   if (!session) {
     await deleteSessionCookie();
-    redirect("/admin/login");
+    redirect("/admin/login?expired=1");
   }
 
   const ready = adminConfigured();

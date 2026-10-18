@@ -53,9 +53,14 @@ export async function verifyAdminSession(): Promise<AdminSession | null> {
 }
 
 export async function deleteSessionCookie(): Promise<void> {
-  const { cookies } = await import("next/headers");
-  const jar = await cookies();
-  jar.delete(SESSION_COOKIE);
+  try {
+    const { cookies } = await import("next/headers");
+    const jar = await cookies();
+    jar.delete(SESSION_COOKIE);
+  } catch {
+    // Next.js melarang mutasi cookie di Server Component render.
+    // Error ditangkap agar tidak menyebabkan 500 / error boundary crash.
+  }
 }
 
 export async function requireAdmin(): Promise<AdminSession> {

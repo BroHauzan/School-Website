@@ -67,6 +67,11 @@ export function LoginForm() {
           sesuai <code className="font-mono">.env.example</code> lalu restart dev server.
         </div>
       ) : null}
+      {search.get("expired") === "1" && !error ? (
+        <div className="rounded-lg border border-navy/15 bg-navy/5 p-4 text-sm leading-relaxed text-navy">
+          Sesi admin Anda telah berakhir atau tidak valid. Silakan masuk kembali.
+        </div>
+      ) : null}
       <div>
         <label htmlFor="email" className="mb-2 block text-xs font-semibold uppercase tracking-[0.22em] text-navy-muted">
           Email admin

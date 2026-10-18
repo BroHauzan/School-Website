@@ -6,11 +6,17 @@ import { SESSION_COOKIE } from "@/lib/auth-cookie";
 // Guard ringan: cek keberadaan cookie saja. Verifikasi kriptografis
 // dilakukan di app/admin/layout.tsx + app/admin/(panel)/layout.tsx + API routes (jangan di sini).
 export default function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const { pathname, searchParams } = request.nextUrl;
   const hasSession = Boolean(request.cookies.get(SESSION_COOKIE)?.value);
+  const isExpired = searchParams.has("expired") || searchParams.has("logout");
 
   if (pathname === "/admin/login") {
-    if (hasSession) {
+    if (isExpired) {
+      const response = NextResponse.next();
+      response.cookies.delete(SESSION_COOKIE);
+      return response;
+    }
+    if (hasSession && !searchParams.has("next")) {
       return NextResponse.redirect(new URL("/admin", request.url));
     }
     return NextResponse.next();
