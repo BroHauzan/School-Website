@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 export default function InstagramHelperPage() {
   const [url, setUrl] = useState("");
@@ -165,6 +166,19 @@ export default function InstagramHelperPage() {
                 value={imageUrl}
                 className="w-full resize-none rounded-lg border border-navy/20 bg-white p-2.5 font-mono text-xs text-navy focus:outline-none"
               />
+
+              <div>
+                <Link
+                  id="btn-create-news"
+                  href={`/admin/berita/baru?imageUrl=${encodeURIComponent(imageUrl)}`}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-navy px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-navy/90"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Buat Berita dengan Gambar Ini
+                </Link>
+              </div>
 
               <div>
                 <span className="block mb-2 text-xs font-semibold uppercase tracking-wider text-navy">
