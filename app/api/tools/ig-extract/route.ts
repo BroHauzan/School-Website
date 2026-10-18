@@ -3,6 +3,7 @@ import {
   isInstagramPostUrl,
   extractInstagramThumbnail,
   uploadUrlToCloudinary,
+  cleanCloudinaryUrl,
 } from "@/lib/cloudinary";
 
 export const runtime = "nodejs";
@@ -54,9 +55,12 @@ export async function POST(request: Request) {
       );
     }
 
+    // Pastikan URL yang dikembalikan adalah URL asli hasil upload tanpa URL-transformation crop (c_fill, dll)
+    const cleanUrl = cleanCloudinaryUrl(uploadRes.secure_url);
+
     return NextResponse.json({
       success: true,
-      imageUrl: uploadRes.secure_url,
+      imageUrl: cleanUrl,
     });
   } catch (error) {
     console.error("[tools/ig-extract] Error:", error);

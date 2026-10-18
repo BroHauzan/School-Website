@@ -34,8 +34,25 @@ export async function uploadToCloudinary(
 }
 
 /**
+ * Membersihkan URL Cloudinary dari parameter transformasi (seperti c_fill, w_..., h_..., g_auto)
+ * untuk memastikan URL selalu mengarah ke file gambar asli (original aspect ratio & resolution).
+ */
+export function cleanCloudinaryUrl(url: string): string {
+  if (!url || typeof url !== "string") return url;
+  if (!url.includes("res.cloudinary.com") || !url.includes("/image/upload/")) {
+    return url;
+  }
+  return url.replace(
+    /(res\.cloudinary\.com\/[^/]+\/image\/upload\/)(?:(?:c_[^/]+|w_[^/]+|h_[^/]+|g_[^/]+|q_[^/]+|f_[^/]+|b_[^/]+|ar_[^/]+)\/)+/g,
+    "$1"
+  );
+}
+
+/**
  * Unggah gambar dari URL publik ke Cloudinary (misal untuk sinkronisasi webhook/CMS).
  * Menerapkan fallback buffer download jika Cloudinary scraper dibatasi oleh host sumber.
+ * CATATAN PENTING: File diunggah utuh apa adanya (original resolution & aspect ratio)
+ * tanpa parameter transformation, crop: 'fill', width, height, atau gravity.
  */
 export async function uploadUrlToCloudinary(
   imageUrl: string,
@@ -50,6 +67,7 @@ export async function uploadUrlToCloudinary(
   }
 
   // 1. Coba upload langsung via string URL ke endpoint upload Cloudinary
+  // Tanpa parameter transformasi atau pemotongan (crop) apa pun
   try {
     const form = new FormData();
     form.append("file", imageUrl);
@@ -67,13 +85,17 @@ export async function uploadUrlToCloudinary(
     } | null;
 
     if (res.ok && json?.secure_url) {
-      return { secure_url: json.secure_url, public_id: json.public_id ?? "" };
+      return {
+        secure_url: cleanCloudinaryUrl(json.secure_url),
+        public_id: json.public_id ?? "",
+      };
     }
   } catch {
     // Lanjut ke fallback fetch buffer jika remote fetch Cloudinary gagal/diblokir
   }
 
   // 2. Fallback: Unduh gambar terlebih dahulu lalu upload sebagai Blob
+  // Gambar diunggah utuh dengan rasio asli tanpa crop / transformation
   const imgRes = await fetch(imageUrl, {
     headers: {
       "User-Agent":
@@ -119,7 +141,10 @@ export async function uploadUrlToCloudinary(
     throw new Error("Upload ke Cloudinary gagal: secure_url kosong.");
   }
 
-  return { secure_url: json.secure_url, public_id: json.public_id ?? "" };
+  return {
+    secure_url: cleanCloudinaryUrl(json.secure_url),
+    public_id: json.public_id ?? "",
+  };
 }
 
 export const uploadFromUrl = uploadUrlToCloudinary;
@@ -147,11 +172,17 @@ function decodeHtmlEntities(str: string): string {
 
 /**
  * Ekstraksi URL thumbnail asli (og:image) dari postingan Instagram menggunakan bot crawler UA.
+ * Mengutamakan crawler yang tidak dipaksa crop 1:1 oleh Instagram (seperti Slackbot / Skype).
  */
 export async function extractInstagramThumbnail(postUrl: string): Promise<string | null> {
   const cleanUrl = postUrl.trim().split("?")[0] || "";
   const normalizedUrl = cleanUrl.endsWith("/") ? cleanUrl : `${cleanUrl}/`;
+  
+  // Slackbot dan Skype mendapatkan og:image dengan aspek rasio asli dari Instagram,
+  // sedangkan Facebook dan Twitter bot sering kali mendapatkan thumbnail yang di-crop 1:1 (stp=c...).
   const userAgents = [
+    "Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)",
+    "SkypeUriPreview Preview/0.5",
     "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
     "Twitterbot/1.0",
   ];
@@ -171,14 +202,51 @@ export async function extractInstagramThumbnail(postUrl: string): Promise<string
       if (!res.ok) continue;
 
       const html = await res.text();
-      const match =
+
+      // Kumpulkan calon URL CDN scontent di dalam HTML
+      const scontentMatches = html.match(/https:\/\/[^"'<>\s]*cdninstagram\.com\/v\/[^"'<>\s]+/gi) || [];
+      const cleanCandidates = scontentMatches.map((u) =>
+        decodeHtmlEntities(u.replace(/\\u0026/g, "&"))
+      );
+
+      // Cari calon yang tidak memiliki crop parameter Instagram (stp=c...)
+      const uncroppedCandidate = cleanCandidates.find(
+        (u) => !/([?&]stp=)c\d+\./i.test(u)
+      );
+
+      // Cek og:image terlebih dahulu
+      const ogMatch =
         html.match(/<meta\s+[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i) ||
-        html.match(/<meta\s+[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["']/i) ||
+        html.match(/<meta\s+[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["']/i);
+
+      if (ogMatch && ogMatch[1]) {
+        const decoded = decodeHtmlEntities(ogMatch[1]);
+        // Jika og:image tidak di-crop, langsung pakai
+        if (!/([?&]stp=)c\d+\./i.test(decoded) && /^https?:\/\//i.test(decoded)) {
+          return decoded;
+        }
+        // Jika og:image di-crop tapi ada candidate uncropped di halaman, gunakan candidate uncropped
+        if (uncroppedCandidate && /^https?:\/\//i.test(uncroppedCandidate)) {
+          return uncroppedCandidate;
+        }
+        // Fallback pakai decoded og:image jika tidak ada pilihan lain
+        if (/^https?:\/\//i.test(decoded)) {
+          return decoded;
+        }
+      }
+
+      // Jika og:image tidak ada, gunakan uncropped candidate
+      if (uncroppedCandidate && /^https?:\/\//i.test(uncroppedCandidate)) {
+        return uncroppedCandidate;
+      }
+
+      // Fallback ke twitter:image
+      const twitterMatch =
         html.match(/<meta\s+[^>]*name=["']twitter:image["'][^>]*content=["']([^"']+)["']/i) ||
         html.match(/<meta\s+[^>]*content=["']([^"']+)["'][^>]*name=["']twitter:image["']/i);
 
-      if (match && match[1]) {
-        const decoded = decodeHtmlEntities(match[1]);
+      if (twitterMatch && twitterMatch[1]) {
+        const decoded = decodeHtmlEntities(twitterMatch[1]);
         if (/^https?:\/\//i.test(decoded)) {
           return decoded;
         }
