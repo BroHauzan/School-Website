@@ -75,14 +75,25 @@ export default async function BeritaDetailPage({ params }: BeritaDetailProps) {
             </Link>
           </Reveal>
           <Reveal delay={0.1}>
-            <div className="relative mt-8 aspect-[16/9] overflow-hidden rounded-lg border border-navy/10 bg-navy-light">
+            <div className="relative mt-8 aspect-[16/9] overflow-hidden rounded-2xl border border-navy/10 bg-navy/5">
+              {/* Layer 1 (Background): Blurred Backdrop */}
+              <Image
+                src={item.image}
+                alt=""
+                fill
+                priority
+                aria-hidden="true"
+                sizes="(max-width: 768px) 100vw, 768px"
+                className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-40 blur-2xl"
+              />
+              {/* Layer 2 (Gambar Utama): Centered Contain */}
               <Image
                 src={item.image}
                 alt={item.title}
                 fill
                 priority
                 sizes="(max-width: 768px) 100vw, 768px"
-                className="object-cover"
+                className="relative z-10 h-full w-full object-contain p-2 drop-shadow-md"
               />
             </div>
           </Reveal>
