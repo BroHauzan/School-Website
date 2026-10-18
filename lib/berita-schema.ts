@@ -8,6 +8,7 @@ export type BeritaDoc = {
   body: string[];
   featured?: boolean;
   published?: boolean;
+  status?: "draft" | "published" | string;
   dateISO: string;
   dateLabel: string;
   createdAt: string;
@@ -48,7 +49,11 @@ export function validateBerita(input: Record<string, unknown>): { ok: boolean; e
   if (str("excerpt").length > 300) errors.push("Ringkasan maksimal 300 karakter.");
   if (!str("tag")) errors.push("Tag wajib diisi.");
   const body = input.body;
-  const paras = Array.isArray(body) ? body.map((p) => String(p).trim()).filter(Boolean) : [];
+  const paras = Array.isArray(body)
+    ? body.map((p) => String(p).trim()).filter(Boolean)
+    : typeof body === "string" && body.trim()
+    ? body.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean)
+    : [];
   if (paras.length === 0) errors.push("Isi berita minimal 1 paragraf.");
   const iso = str("dateISO") || str("date");
   if (iso && isNaN(new Date(iso).getTime())) errors.push("Tanggal tidak valid.");
@@ -57,7 +62,11 @@ export function validateBerita(input: Record<string, unknown>): { ok: boolean; e
     errors.push("URL gambar harus path lokal atau https dari res.cloudinary.com / Firebase Storage.");
   }
   if (/[<>]/.test(str("title") + str("excerpt") + str("tag"))) errors.push("Judul, ringkasan, dan tag tidak boleh mengandung karakter < atau >.");
-  const bodyRaw = Array.isArray(body) ? body.map((p) => String(p)).join(" ") : "";
+  const bodyRaw = Array.isArray(body)
+    ? body.map((p) => String(p)).join(" ")
+    : typeof body === "string"
+    ? body
+    : "";
   if (/[<>]/.test(bodyRaw)) errors.push("Isi berita tidak boleh mengandung karakter < atau >.");
   return { ok: errors.length === 0, errors };
 }
@@ -69,7 +78,25 @@ export function normalizeBeritaInput(input: Record<string, unknown>, existing?: 
   const dateISO = String(input.dateISO ?? input.date ?? existing?.dateISO ?? todayISO()).slice(0, 10);
   const body = Array.isArray(input.body)
     ? (input.body as unknown[]).map((p) => String(p).trim()).filter(Boolean)
+    : typeof input.body === "string" && input.body.trim()
+    ? input.body.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean)
     : (existing?.body ?? []);
+
+  let published: boolean;
+  if (input.published !== undefined) {
+    published = Boolean(input.published);
+  } else if (input.status !== undefined) {
+    published = String(input.status).toLowerCase() === "published";
+  } else if (existing?.published !== undefined) {
+    published = existing.published;
+  } else {
+    published = true;
+  }
+
+  const status = input.status !== undefined
+    ? String(input.status)
+    : (published ? "published" : "draft");
+
   return {
     slug,
     title,
@@ -78,8 +105,57 @@ export function normalizeBeritaInput(input: Record<string, unknown>, existing?: 
     image: String(input.image ?? existing?.image ?? "/hero-school.webp").trim() || "/hero-school.webp",
     body,
     featured: Boolean(input.featured ?? existing?.featured ?? false),
-    published: input.published === undefined ? (existing?.published ?? true) : Boolean(input.published),
+    published,
+    status,
     dateISO,
     dateLabel: formatTanggalID(dateISO),
   };
 }
+
+export type BeritaInputSchemaResult =
+  | { success: true; ok: true; data: Record<string, unknown>; errors?: never; error?: never }
+  | { success: false; ok: false; error: { message: string; errors: string[] }; errors: string[]; data?: never };
+
+export function beritaInputSchema(input: unknown) {
+  return validateBerita(input as Record<string, unknown>);
+}
+
+beritaInputSchema.validate = validateBerita;
+beritaInputSchema.safeParse = (input: unknown): BeritaInputSchemaResult => {
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
+    const errors = ["Body payload harus berupa objek JSON."];
+    return {
+      success: false,
+      ok: false,
+      error: { message: errors[0], errors },
+      errors,
+    };
+  }
+  const check = validateBerita(input as Record<string, unknown>);
+  if (!check.ok) {
+    return {
+      success: false,
+      ok: false,
+      error: {
+        message: check.errors.join("; "),
+        errors: check.errors,
+      },
+      errors: check.errors,
+    };
+  }
+  return {
+    success: true,
+    ok: true,
+    data: input as Record<string, unknown>,
+  };
+};
+
+beritaInputSchema.parse = (input: unknown): Record<string, unknown> => {
+  const res = beritaInputSchema.safeParse(input);
+  if (!res.success) {
+    const err = new Error(res.error.message);
+    (err as unknown as { errors: string[] }).errors = res.error.errors;
+    throw err;
+  }
+  return res.data;
+};

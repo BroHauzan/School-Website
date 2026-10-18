@@ -175,6 +175,8 @@ export async function createBerita(input: Record<string, unknown>): Promise<Beri
   return { id: docRef.id, ...norm, createdAt: now, updatedAt: now };
 }
 
+export const tambahBerita = createBerita;
+
 export async function updateBerita(id: string, input: Record<string, unknown>): Promise<BeritaDoc> {
   const prev = await getBeritaById(id);
   if (!prev) throw Object.assign(new Error("Berita tidak ditemukan."), { status: 404 });

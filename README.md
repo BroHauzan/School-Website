@@ -81,6 +81,7 @@ Akademik **bukan** rute terpisah — dirender sebagai section `Academic` di `/`.
 | `/api/berita` | `GET` daftar, `POST` buat |
 | `/api/berita/[id]` | `PATCH` ubah, `DELETE` hapus |
 | `/api/berita/upload` | `POST` gambar → Cloudinary folder `berita` |
+| `/api/berita/webhook` | `POST` posting otomatis berita (header `x-sync-secret`, validasi skema, default draft) |
 | `/api/halaman` | `GET` daftar halaman, `POST` buat halaman baru |
 | `/api/halaman/[id]` | `PATCH` ubah, `DELETE` hapus halaman |
 | `/api/halaman/[id]/dampak` | Analisis dampak navigasi sebelum hapus |
